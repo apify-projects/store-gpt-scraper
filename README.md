@@ -113,7 +113,7 @@ There is list of use cases that you can use as a starting point for your own GTP
 Summarize this page into three sentences.
 ```
 
-Results:
+**Results**:
 ```json
 [
   {
@@ -136,7 +136,7 @@ There will be attributes, companyEmail, companyWeb, githubUrl, twitterUrl,
 vatId, businessId and backAccountNumber.
 ```
 
-Results:
+**Results**:
 ```json
 [
   {
