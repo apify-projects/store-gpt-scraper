@@ -42,15 +42,6 @@
             "editor": "textfield",
             "prefill": ""
         },
-        "longContentConfig": {
-            "title": "Long content handling",
-            "type": "string",
-            "description": "Select how to handle with too long content. The default is to truncate the content.\n\nTruncate content - the content will be truncated to the maximum length.\n\nSplit content - the content will be split into multiple chunks and the instruction will run for each of them.\n\nSkip page - the page will be skipped.",
-            "editor": "select",
-            "default": "truncate",
-            "enum": ["truncate", "split", "skip"],
-            "enumTitles": ["Truncate content", "Split content", "Skip page"]
-        },
         "maxCrawlingDepth": {
             "title": "Max crawling depth",
             "type": "integer",

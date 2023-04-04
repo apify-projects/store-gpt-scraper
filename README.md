@@ -67,15 +67,6 @@ You can instruct OpenAI to answer with "skip this page", which will skip the pag
 
 - "Summarize this page into three sentences. If the page is about Proxy, answer with 'skip this page'.".
 
-### Long content handling
-
-The GPT has a limit on the number of tokens it can handle, but there is the option to overcome this limit.
-The options are:
-
-- Truncate content
-- Split content
-- Skip page
-
 ### Max crawling depth
 
 Specifies how many links away from `Start URLs` the scraper will descend.
@@ -106,9 +97,3 @@ You can skip pages from the output by asking GPT to answer with `skip this page`
 You can instruct GPT to answer with JSON, and the scraper under the hood parse this JSON and stores it as a structured answer, for example:
 
 - "Find all links on this page and return them as JSON. There will be one attribute, `links`, containing an array of URLs."
-
-### Handle with long content with splitting
-
-You can instruct the scraper to split long content into smaller chunks using the 'Split content' option.
-This way scraper will split the content into smaller chunks and pass them to GPT with the same instruction.
-The scraper will then ask GPT to merge the chunk's answers into one result.
