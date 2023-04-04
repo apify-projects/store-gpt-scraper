@@ -3,14 +3,10 @@
 The GPT Scraper is a powerful tool that leverages OpenAI's API to modify text obtained from a scraper.
 You can use the scraper to extract content from a website and then pass that content to the OpenAI API to make the magic.
 
-## Limits
+## How much does it cost?
 
-The models themselves have a limit on the number of tokens they can handle, but there is an option to overcome this limit.
-You can check the limits for each model on the [OpenAI API documentation](https://platform.openai.com/docs/models/overview).
-
-## Pricing
-
-TBD
+The GPT Scraper costs $0.009 per processed page. This price includes the cost of the OpenAI API as well.
+Apify provides you with $5 free usage credit for each month. You can scrape up to 555 pages for free.
 
 ## Usage
 
@@ -56,7 +52,7 @@ following URLs:
 -   `http://www.example.com/pages/my-awesome-page`
 -   `http://www.example.com/pages/something`
 
-### Instructions
+### Instructions for GPT
 
 This option instructs GPT how to handle page content, for example:
 
@@ -82,6 +78,11 @@ The **Proxy configuration** (`proxyConfiguration`) option enables you to set pro
 the scraper will use that to prevent its detection by target websites.
 You can use both [Apify Proxy](https://apify.com/proxy) and custom HTTP or SOCKS5 proxy servers.
 
+## Limits
+
+The GPT model itself has a limit on the number of content it can handle based on that the content will be truncated in case limit was reach.
+
+
 ## Tips & Tricks
 
 A few hidden features that you might find helpful.
@@ -97,3 +98,64 @@ You can skip pages from the output by asking GPT to answer with `skip this page`
 You can instruct GPT to answer with JSON, and the scraper under the hood parse this JSON and stores it as a structured answer, for example:
 
 - "Find all links on this page and return them as JSON. There will be one attribute, `links`, containing an array of URLs."
+
+## Example usage
+
+There is list of use cases that you can use as a starting point for your own GTP scraper.
+
+### Summarize a page
+
+**Start URLs:**
+- https://en.wikipedia.org/wiki/COVID-19_pandemic
+
+**Instructions for GPT**:
+```text
+Summarize this page into three sentences.
+```
+
+Results:
+```json
+[
+  {
+    "url": "https://en.wikipedia.org/wiki/COVID-19_pandemic",
+    "answer": "This page on Wikipedia provides comprehensive information on the COVID-19 pandemic, including its epidemiology, disease symptoms and prevention strategies. The page also covers the history of the pandemic, national responses, and other measures taken by organizations such as the WHO and UN. The information is organized through a series of subsections for easy navigation.",
+    "jsonAnswer": null
+  }
+]
+```
+
+### Find a contact details on a page
+
+**Start URLs:**
+- https://apify.com/contact
+
+**Instructions for GPT**:
+```text
+Please find contact details on this page and return them as JSON.
+There will be attributes, companyEmail, companyWeb, githubUrl, twitterUrl,
+vatId, businessId and backAccountNumber.
+```
+
+Results:
+```json
+[
+  {
+    "url": "https://apify.com/contact",
+    "answer": "{\n    \"companyEmail\": \"hello@apify.com\",\n    \"companyWeb\": \"https://apify.com\",\n    \"githubUrl\": \"https://github.com/apify\",\n    \"twitterUrl\": \"https://twitter.com/apify\",\n    \"vatId\": \"CZ04788290\",\n    \"businessId\": \"04788290\",\n    \"backAccountNumber\": \"CZ0355000000000027434378\"\n}",
+    "jsonAnswer": {
+      "companyEmail": "hello@apify.com",
+      "companyWeb": "https://apify.com",
+      "githubUrl": "https://github.com/apify",
+      "twitterUrl": "https://twitter.com/apify",
+      "vatId": "CZ04788290",
+      "businessId": "04788290",
+      "backAccountNumber": "CZ0355000000000027434378"
+    }
+  }
+]
+```
+
+
+
+
+
