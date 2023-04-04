@@ -24,8 +24,6 @@ const MAX_REQUESTS_PER_CRAWL = 100;
 // Initialize the Apify SDK
 await Actor.init();
 
-log.setLevel(log.LEVELS.DEBUG);
-
 if (!process.env.OPENAI_API_KEY) {
     await Actor.fail('OPENAI_API_KEY is not set!');
 }
