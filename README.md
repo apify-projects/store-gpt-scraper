@@ -16,7 +16,7 @@ TBD
 
 To get started with GPT Scraper, you need to set up the pages you want to scrape using [**Start URLs**](#start-urls)
 and then set up instructions on how the GTP scraper should handle each page. The simplest scraper, which can load the page with
-URL https://apify.com instruct GPT to extract information from it will look:
+URL https://news.ycombinator.com/ instruct GPT to extract information from it will look:
 
 ![img.png](img/example_input.png)
 
