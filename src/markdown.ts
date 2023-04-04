@@ -1,3 +1,4 @@
+/* eslint-disable  @typescript-eslint/no-unused-vars */
 import TurndownService, { Node, Options, Rule } from 'turndown';
 import plugin from 'joplin-turndown-plugin-gfm';
 import { HTML_TAGS_TO_IGNORE } from './input.js';

@@ -16,5 +16,8 @@
         "node_modules",
         "dist",
         "**/*.d.ts"
-    ]
+    ],
+    "rules": {
+        "@typescript-eslint/ban-ts-comment": "warn"
+    }
 }
