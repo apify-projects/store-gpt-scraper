@@ -18,7 +18,7 @@ To get started with GPT Scraper, you need to set up the pages you want to scrape
 and then set up instructions on how the GTP scraper should handle each page. The simplest scraper, which can load the page with
 URL https://news.ycombinator.com/ instruct GPT to extract information from it will look:
 
-![img.png](img/example_input.png)
+![img/example_input_2.png](img/example_input_2.png)
 
 You can configure the scraper and GTP using Input configuration if you need to set up a more complex workflow.
 
