@@ -11,27 +11,20 @@ import {
     OpenaiAPIUsage,
 } from './openai.js';
 import {
-    chunkTextByTokenLenght,
     htmlToMarkdown,
-    htmlToText,
     shortsTextByTokenLength,
-    shrinkHtml,
     tryToParseJsonFromString,
 } from './processors.js';
 
-// We used just one model and markdown content to simplify pricing, but we can test with other models and contents, but it cannot be set in input for now.
+// We used just one model to simplify pricing, but we can test with other models, but it cannot be set in input for now.
 const DEFAULT_OPENAI_MODEL = 'gpt-3.5-turbo';
-const DEFAULT_CONTENT = 'markdown';
 
 const MAX_REQUESTS_PER_CRAWL = 100;
 
-const MERGE_DOCS_SEPARATOR = '----';
-
-// TODO: We can make this configurable
-const MERGE_INSTRUCTIONS = `Merge the following text separated by ${MERGE_DOCS_SEPARATOR} into a single text. The final text should have same format.`;
-
 // Initialize the Apify SDK
 await Actor.init();
+
+log.setLevel(log.LEVELS.DEBUG);
 
 if (!process.env.OPENAI_API_KEY) {
     await Actor.fail('OPENAI_API_KEY is not set!');
@@ -42,7 +35,8 @@ const input = await Actor.getInput() as Input;
 if (!input) throw new Error('INPUT cannot be empty!');
 // @ts-ignore
 const openai = await getOpenAIClient(process.env.OPENAI_API_KEY, process.env.OPENAI_ORGANIZATION_ID);
-const modelConfig = validateGPTModel(input.model || DEFAULT_OPENAI_MODEL);
+const modelConfig = validateGPTModel(DEFAULT_OPENAI_MODEL);
+// const modelConfig = validateGPTModel(input.model);
 
 const crawler = new PlaywrightCrawler({
     launchContext: {
@@ -71,7 +65,7 @@ const crawler = new PlaywrightCrawler({
 
         // Enqueue links
         // If maxCrawlingDepth is not set or 0 the depth is infinite.
-        const isDepthLimitReached = !!input.maxCrawlingDepth && depth < input.maxCrawlingDepth;
+        const isDepthLimitReached = !!input.maxCrawlingDepth && depth >= input.maxCrawlingDepth;
         if (input.linkSelector && input?.globs?.length && !isDepthLimitReached) {
             const { processedRequests } = await enqueueLinks({
                 selector: input.linkSelector,
@@ -93,92 +87,35 @@ const crawler = new PlaywrightCrawler({
             ? await page.$eval(input.targetSelector, (el) => el.innerHTML)
             : await page.content();
 
-        let pageContent = '';
-        const content = input.content || DEFAULT_CONTENT;
-        switch (content) {
-            case 'markdown':
-                pageContent = htmlToMarkdown(originalContentHtml);
-                break;
-            case 'text':
-                pageContent = htmlToText(originalContentHtml);
-                break;
-            case 'html':
-            default:
-                pageContent = shrinkHtml(originalContentHtml);
-                break;
-        }
+        const pageContent = htmlToMarkdown(originalContentHtml);
         const contentTokenLength = getNumberOfTextTokens(pageContent);
         const instructionTokenLength = getNumberOfTextTokens(input.instructions);
 
         let answer = '';
         const openaiUsage = new OpenaiAPIUsage(modelConfig.model);
         if (contentTokenLength > modelConfig.maxTokens) {
-            if (input.longContentConfig === 'skip') {
-                log.info(
-                    `Skipping page ${request.url} because content is too long for the ${modelConfig.model} model.`,
-                    { contentLength: pageContent.length, contentTokenLength, url: content },
-                );
-                return;
-            } if (input.longContentConfig === 'truncate') {
-                const contentMaxTokens = (modelConfig.maxTokens * 0.9) - instructionTokenLength; // 10% buffer for answer
-                const truncatedContent = shortsTextByTokenLength(pageContent, contentMaxTokens);
-                log.info(
-                    `Processing page ${request.url} with truncated text using GPT instruction...`,
-                    { originalContentLength: pageContent.length, contentLength: truncatedContent.length, contentMaxTokens, contentFormat: content },
-                );
-                const prompt = `${input.instructions}\`\`\`${truncatedContent}\`\`\``;
-                log.debug(
-                    `Truncated content for ${request.url}`,
-                    { promptTokenLength: getNumberOfTextTokens(prompt), contentMaxTokens, truncatedContentLength: getNumberOfTextTokens(truncatedContent) },
-                );
-                try {
-                    const answerResult = await processInstructions({ prompt, openai, modelConfig });
-                    answer = answerResult.answer;
-                    openaiUsage.logApiCallUsage(answerResult.usage);
-                } catch (err: any) {
-                    throw rethrowOpenaiError(err);
-                }
-            } else if (input.longContentConfig === 'split') {
-                const contentMaxTokens = (modelConfig.maxTokens * 0.9) - instructionTokenLength; // 10% buffer for answer
-                const pageChunks = chunkTextByTokenLenght(pageContent, contentMaxTokens);
-                log.info(
-                    `Processing page ${request.url} with split text using GPT instruction...`,
-                    { originalContentLength: pageContent.length, contentMaxTokens, chunksLength: pageChunks.length, contentFormat: content },
-                );
-                const promises = [];
-                for (const contentPart of pageChunks) {
-                    const prompt = `${input.instructions}\`\`\`${contentPart}\`\`\``;
-                    log.debug(
-                        `Chunk content for ${request.url}`,
-                        {
-                            promptTokenLength: getNumberOfTextTokens(prompt),
-                            contentMaxTokens,
-                            truncatedContentPartLength: getNumberOfTextTokens(contentPart),
-                            pageChunksCount: pageChunks.length,
-                        },
-                    );
-                    promises.push(processInstructions({ prompt, openai, modelConfig }));
-                }
-                try {
-                    const answerList = await Promise.all(promises);
-                    const joinAnswers = answerList.map(({ answer: a }) => a).join(`\n\n${MERGE_DOCS_SEPARATOR}\n\n`);
-                    answerList.forEach(({ usage }) => openaiUsage.logApiCallUsage(usage));
-                    const mergePrompt = `${MERGE_INSTRUCTIONS}\n${joinAnswers}`;
-                    log.debug(
-                        `Merge instructions for ${request.url}`,
-                        { promptTokenLength: getNumberOfTextTokens(mergePrompt), joinAnswersTokenLength: getNumberOfTextTokens(joinAnswers) },
-                    );
-                    const answerResult = await processInstructions({ prompt: mergePrompt, openai, modelConfig });
-                    answer = answerResult.answer;
-                    openaiUsage.logApiCallUsage(answerResult.usage);
-                } catch (err: any) {
-                    throw rethrowOpenaiError(err);
-                }
+            const contentMaxTokens = (modelConfig.maxTokens * 0.9) - instructionTokenLength; // 10% buffer for answer
+            const truncatedContent = shortsTextByTokenLength(pageContent, contentMaxTokens);
+            log.info(
+                `Processing page ${request.url} with truncated text using GPT instruction...`,
+                { originalContentLength: pageContent.length, contentLength: truncatedContent.length, contentMaxTokens },
+            );
+            const prompt = `${input.instructions}\`\`\`${truncatedContent}\`\`\``;
+            log.debug(
+                `Truncated content for ${request.url}`,
+                { promptTokenLength: getNumberOfTextTokens(prompt), contentMaxTokens, truncatedContentLength: getNumberOfTextTokens(truncatedContent) },
+            );
+            try {
+                const answerResult = await processInstructions({ prompt, openai, modelConfig });
+                answer = answerResult.answer;
+                openaiUsage.logApiCallUsage(answerResult.usage);
+            } catch (err: any) {
+                throw rethrowOpenaiError(err);
             }
         } else {
             log.info(
                 `Processing page ${request.url} with GPT instruction...`,
-                { contentLength: pageContent.length, contentTokenLength, contentFormat: content },
+                { contentLength: pageContent.length, contentTokenLength },
             );
             const prompt = `${input.instructions}\`\`\`${pageContent}\`\`\``;
             try {
@@ -194,7 +131,14 @@ const crawler = new PlaywrightCrawler({
             log.error('No answer was returned.', { url: request.url });
             return;
         }
-        if (answer.toLocaleLowerCase().includes('skip this page')) {
+        const answerLowerCase = answer.toLocaleLowerCase();
+        if (answerLowerCase.includes('skip this page')
+            || answerLowerCase.includes('skip this url')
+            || answerLowerCase.includes('skip the page')
+            || answerLowerCase.includes('skip the url')
+            || answerLowerCase.includes('skip url')
+            || answerLowerCase.includes('skip page')
+        ) {
             log.info(`Skipping page ${request.url} from output, the key word "skip this page" was found in answer.`, { answer });
             return;
         }

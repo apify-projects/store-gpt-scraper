@@ -10,11 +10,9 @@ export interface Input {
     instructions: string;
     model?: string;
     targetSelector?: string;
-    content?: string;
     maxPagesPerCrawl: number;
     maxCrawlingDepth: number;
     proxyConfiguration: ProxyConfigurationOptions;
-    longContentConfig?: 'truncate' | 'split' | 'skip';
 }
 
 export const HTML_TAGS_TO_IGNORE = ['script', 'style', 'noscript'];
