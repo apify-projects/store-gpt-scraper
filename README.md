@@ -3,6 +3,13 @@
 The GPT Scraper is a powerful tool that leverages OpenAI's API to modify text obtained from a scraper.
 You can use the scraper to extract content from a website and then pass that content to the OpenAI API to make the magic.
 
+## How it works?
+
+The scraper first loads the page using [Playwright](https://playwright.dev/), then
+it converts the content into markdown format and asks for GPT instruction about markdown content.
+
+If the content didn't fit into the GPT limit, the scraper will truncate the content. You can find the message about truncation content in the log.
+
 ## How much does it cost?
 
 The GPT Scraper costs $0.009 per processed page. This price includes the cost of the OpenAI API as well.
