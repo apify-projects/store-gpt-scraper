@@ -81,9 +81,17 @@ const crawler = new PlaywrightCrawler({
         }
 
         // A function to be evaluated by Playwright within the browser context.
-        const originalContentHtml = input.targetSelector
-            ? await page.$eval(input.targetSelector, (el) => el.innerHTML)
-            : await page.content();
+        let originalContentHtml;
+        if (input.targetSelector) {
+            try {
+                originalContentHtml = await page.$eval(input.targetSelector, (el) => el.innerHTML);
+            } catch (err) {
+                log.error(`Cannot find targetSelector ${input.targetSelector} on ${request.url}, skipping this page.`, { err });
+                return;
+            }
+        } else {
+            originalContentHtml = await page.content();
+        }
 
         const pageContent = htmlToMarkdown(originalContentHtml);
         const contentTokenLength = getNumberOfTextTokens(pageContent);
