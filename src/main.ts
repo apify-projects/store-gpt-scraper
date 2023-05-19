@@ -1,5 +1,5 @@
 import { Actor } from 'apify';
-import { PlaywrightCrawler, Dataset, log } from 'crawlee';
+import { PlaywrightCrawler, Dataset, log, RequestList } from 'crawlee';
 import { createRequestDebugInfo } from '@crawlee/utils';
 import { Input } from './input.js';
 import {
@@ -34,6 +34,7 @@ if (!input) throw new Error('INPUT cannot be empty!');
 // @ts-ignore
 const openai = await getOpenAIClient(process.env.OPENAI_API_KEY, process.env.OPENAI_ORGANIZATION_ID);
 const modelConfig = validateGPTModel(DEFAULT_OPENAI_MODEL);
+const requestList = await RequestList.open('start-urls', input.startUrls);
 // const modelConfig = validateGPTModel(input.model);
 
 const crawler = new PlaywrightCrawler({
@@ -56,6 +57,7 @@ const crawler = new PlaywrightCrawler({
     requestHandlerTimeoutSecs: 3 * 60,
     proxyConfiguration: input.proxyConfiguration && await Actor.createProxyConfiguration(input.proxyConfiguration),
     maxRequestsPerCrawl: input.maxPagesPerCrawl || MAX_REQUESTS_PER_CRAWL,
+    requestList,
 
     async requestHandler({ request, page, enqueueLinks }) {
         const { depth = 0 } = request.userData;
@@ -187,7 +189,7 @@ const crawler = new PlaywrightCrawler({
     },
 });
 
-await crawler.run(input.startUrls);
+await crawler.run();
 log.info('Configuration completed. Starting the scrape.');
 await crawler.run();
 log.info(`Crawler finished.`);
