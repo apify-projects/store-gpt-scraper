@@ -47,12 +47,13 @@ const crawler = new PlaywrightCrawler({
     sessionPoolOptions: {
         blockedStatusCodes: [401, 429],
     },
-    preNavigationHooks: [
-        async ({ blockRequests }) => {
-            // By default blocks [".css", ".jpg", ".jpeg", ".png", ".svg", ".gif", ".woff", ".pdf", ".zip"]
-            await blockRequests();
-        },
-    ],
+    // Switch of blocking of resources as it breaks scraping of apify.com/store detail pages like.
+    // preNavigationHooks: [
+    //     async ({ blockRequests }) => {
+    //         // By default blocks [".css", ".jpg", ".jpeg", ".png", ".svg", ".gif", ".woff", ".pdf", ".zip"]
+    //         await blockRequests();
+    //     },
+    // ],
     // NOTE: GPT-4 is very slow, so we need to increase the timeout
     requestHandlerTimeoutSecs: 3 * 60,
     proxyConfiguration: input.proxyConfiguration && await Actor.createProxyConfiguration(input.proxyConfiguration),
