@@ -19,8 +19,6 @@ import {
 // We used just one model to simplify pricing, but we can test with other models, but it cannot be set in input for now.
 const DEFAULT_OPENAI_MODEL = 'gpt-3.5-turbo';
 
-const MAX_REQUESTS_PER_CRAWL = 100;
-
 // Initialize the Apify SDK
 await Actor.init();
 
@@ -57,7 +55,7 @@ const crawler = new PlaywrightCrawler({
     // NOTE: GPT-4 is very slow, so we need to increase the timeout
     requestHandlerTimeoutSecs: 3 * 60,
     proxyConfiguration: input.proxyConfiguration && await Actor.createProxyConfiguration(input.proxyConfiguration),
-    maxRequestsPerCrawl: input.maxPagesPerCrawl || MAX_REQUESTS_PER_CRAWL,
+    maxRequestsPerCrawl: input.maxPagesPerCrawl,
     requestList,
 
     async requestHandler({ request, page, enqueueLinks }) {
