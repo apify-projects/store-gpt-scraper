@@ -35,6 +35,20 @@ const modelConfig = validateGPTModel(DEFAULT_OPENAI_MODEL);
 const requestList = await RequestList.open('start-urls', input.startUrls);
 // const modelConfig = validateGPTModel(input.model);
 
+let maxPaidDatasetItems: number | undefined;
+let maxRequestsPerCrawl: number | undefined = input.maxPagesPerCrawl;
+if (process.env.ACTOR_MAX_PAID_DATASET_ITEMS) {
+    try {
+        maxPaidDatasetItems = parseInt(process.env.ACTOR_MAX_PAID_DATASET_ITEMS, 10);
+        if (!maxRequestsPerCrawl || maxRequestsPerCrawl === 0 || maxPaidDatasetItems < maxRequestsPerCrawl) {
+            maxRequestsPerCrawl = maxPaidDatasetItems;
+            log.info(`Maximum charged results option set to ${maxPaidDatasetItems}, the scraper will stop after that.`);
+        }
+    } catch (e) {
+        log.warning(`Failed to parse ACTOR_MAX_PAID_DATASET_ITEMS: ${process.env.ACTOR_MAX_PAID_DATASET_ITEMS}`);
+    }
+}
+
 const crawler = new PlaywrightCrawler({
     launchContext: {
         launchOptions: {
@@ -55,7 +69,7 @@ const crawler = new PlaywrightCrawler({
     // NOTE: GPT-4 is very slow, so we need to increase the timeout
     requestHandlerTimeoutSecs: 3 * 60,
     proxyConfiguration: input.proxyConfiguration && await Actor.createProxyConfiguration(input.proxyConfiguration),
-    maxRequestsPerCrawl: input.maxPagesPerCrawl,
+    maxRequestsPerCrawl,
     requestList,
 
     async requestHandler({ request, page, enqueueLinks }) {
