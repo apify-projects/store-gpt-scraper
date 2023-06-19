@@ -42,9 +42,9 @@ export const GPT_MODEL_LIST: {[key: string]: GPTModelConfig} = {
     'gpt-3.5-turbo-16k': {
         model: 'gpt-3.5-turbo-16k',
         // maxTokens: 16384,
-        // It allows 16,384 tokens, but we set up pricing based on 4097 tokens, but let's allow 8192 tokens.
+        // It allows 16,384 tokens, but we set up pricing based on 4097 tokens, but let's allow 8192 tokens YOLO.
         maxTokens: 8192,
-        // Output tokens are expensive, let's limit them to not go crazy
+        // Output tokens are expensive, let's limit them to not go crazy, but still YOLO.
         maxOutputTokens: 2048,
         interface: 'chat',
         cost: {
