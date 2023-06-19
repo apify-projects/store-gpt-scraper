@@ -11,11 +11,17 @@ export const getOpenAIClient = (apiKey: string, organization?: string) => {
     return new OpenAIApi(configuration);
 };
 
+interface OpenaiAPICost {
+    input: number; // USD cost per 1000 tokens
+    output: number; // USD cost per 1000 tokens
+}
+
 interface GPTModelConfig {
     model: string;
     maxTokens: number;
+    maxOutputTokens?: number;
     interface: 'text' | 'chat';
-    cost?: number; // USD cost per 1000 tokens
+    cost?: OpenaiAPICost; // USD cost per 1000 tokens
 }
 
 export const GPT_MODEL_LIST: {[key: string]: GPTModelConfig} = {
@@ -28,7 +34,34 @@ export const GPT_MODEL_LIST: {[key: string]: GPTModelConfig} = {
         model: 'gpt-3.5-turbo',
         maxTokens: 4097,
         interface: 'chat',
-        cost: 0.002,
+        cost: {
+            input: 0.002,
+            output: 0.002,
+        },
+    },
+    'gpt-3.5-turbo-16k': {
+        model: 'gpt-3.5-turbo-16k',
+        // maxTokens: 16384,
+        // It allows 16,384 tokens, but we set up pricing based on 4097 tokens, but let's allow 8192 tokens.
+        maxTokens: 8192,
+        // Output tokens are expensive, let's limit them to not go crazy
+        maxOutputTokens: 2048,
+        interface: 'chat',
+        cost: {
+            input: 0.003,
+            output: 0.004,
+        },
+    },
+    // TODO: Remove this model after June 27th, 2023
+    // https://platform.openai.com/docs/models/gpt-3-5
+    'gpt-3.5-turbo-0613': {
+        model: 'gpt-3.5-turbo-0613',
+        interface: 'chat',
+        maxTokens: 4096,
+        cost: {
+            input: 0.0015,
+            output: 0.002,
+        },
     },
     'text-davinci-002': {
         model: 'text-davinci-002',
@@ -44,7 +77,10 @@ export const GPT_MODEL_LIST: {[key: string]: GPTModelConfig} = {
         model: 'gpt-4',
         maxTokens: 8192,
         interface: 'chat',
-        cost: 0.03,
+        cost: {
+            input: 0.03,
+            output: 0.03,
+        },
     },
 };
 
@@ -76,7 +112,10 @@ export const processInstructions = async ({
     let answer = '';
     let usage = {} as CreateCompletionResponseUsage;
     const promptTokenLength = getNumberOfTextTokens(prompt);
-    const maxTokens = modelConfig.maxTokens - promptTokenLength - 150;
+
+    const maxTokensNeeded = modelConfig.maxTokens - promptTokenLength - 150;
+    // Limits tokens to maxOutputTokens if defined
+    const maxTokens = modelConfig.maxOutputTokens ? Math.min(maxTokensNeeded, modelConfig.maxOutputTokens) : maxTokensNeeded;
     log.debug(`Calling Openai API with model ${modelConfig.model}`, { promptTokenLength });
     if (modelConfig.interface === 'text') {
         const completion = await openai.createCompletion({
@@ -113,10 +152,10 @@ export class OpenaiAPIUsage {
     apiCallsCount: number;
     usage: CreateCompletionResponseUsage;
     finalCostUSD: number;
-    cost: number;
+    cost: OpenaiAPICost;
     constructor(model: string) {
         this.model = model;
-        this.cost = GPT_MODEL_LIST[model].cost || 0;
+        this.cost = GPT_MODEL_LIST[model].cost || { input: 0, output: 0 };
         this.apiCallsCount = 0;
         this.finalCostUSD = 0;
         this.usage = {
@@ -132,6 +171,7 @@ export class OpenaiAPIUsage {
             // @ts-ignore
             this.usage[key] += usage[key] || 0;
         });
-        this.finalCostUSD += this.cost * (usage.total_tokens / 1000);
+        this.finalCostUSD += this.cost.input * (usage.prompt_tokens / 1000);
+        this.finalCostUSD += this.cost.output * (usage.completion_tokens / 1000);
     }
 }

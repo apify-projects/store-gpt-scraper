@@ -17,7 +17,7 @@
 		"gpt-3-encoder": "^1.1.4",
 		"html-to-text": "^9.0.5",
 		"joplin-turndown-plugin-gfm": "^1.0.12",
-		"openai": "^3.2.1",
+		"openai": "^3.3.0",
 		"playwright": "*",
 		"turndown": "^7.1.2"
 	},

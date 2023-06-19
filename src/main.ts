@@ -17,7 +17,10 @@ import {
 } from './processors.js';
 
 // We used just one model to simplify pricing, but we can test with other models, but it cannot be set in input for now.
-const DEFAULT_OPENAI_MODEL = 'gpt-3.5-turbo';
+const DEFAULT_OPENAI_MODEL = 'gpt-3.5-turbo-0613';
+// Used in case input is large. It is more expensive, but handle more context. Using two model also extends the rate limits as there are set based on model.
+const DEFAULT_OPENAI_MODEL_LARGE = 'gpt-3.5-turbo-16k';
+const SMALLER_MODEL_TOKENS_THRESHOLD = 7500;
 
 // Initialize the Apify SDK
 await Actor.init();
@@ -31,7 +34,8 @@ const input = await Actor.getInput() as Input;
 if (!input) throw new Error('INPUT cannot be empty!');
 // @ts-ignore
 const openai = await getOpenAIClient(process.env.OPENAI_API_KEY, process.env.OPENAI_ORGANIZATION_ID);
-const modelConfig = validateGPTModel(DEFAULT_OPENAI_MODEL);
+const smallModelConfig = validateGPTModel(DEFAULT_OPENAI_MODEL);
+const largeModelConfig = validateGPTModel(DEFAULT_OPENAI_MODEL_LARGE);
 const requestList = await RequestList.open('start-urls', input.startUrls);
 // const modelConfig = validateGPTModel(input.model);
 
@@ -113,6 +117,7 @@ const crawler = new PlaywrightCrawler({
         const instructionTokenLength = getNumberOfTextTokens(input.instructions);
 
         let answer = '';
+        const modelConfig = contentTokenLength < SMALLER_MODEL_TOKENS_THRESHOLD ? smallModelConfig : largeModelConfig;
         const openaiUsage = new OpenaiAPIUsage(modelConfig.model);
         if (contentTokenLength > modelConfig.maxTokens) {
             const contentMaxTokens = (modelConfig.maxTokens * 0.9) - instructionTokenLength; // 10% buffer for answer
