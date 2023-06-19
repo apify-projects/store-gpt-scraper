@@ -1,6 +1,7 @@
 import { log } from 'crawlee';
 import { encode } from 'gpt-3-encoder';
 import { Configuration, OpenAIApi, CreateCompletionResponseUsage } from 'openai';
+import retry, { RetryFunction } from 'async-retry';
 import { OpenaiAPIError } from './errors.js';
 
 export const getOpenAIClient = (apiKey: string, organization?: string) => {
@@ -22,6 +23,12 @@ interface GPTModelConfig {
     maxOutputTokens?: number;
     interface: 'text' | 'chat';
     cost?: OpenaiAPICost; // USD cost per 1000 tokens
+}
+
+interface ProcessInstructionsOptions {
+    modelConfig: GPTModelConfig;
+    openai: OpenAIApi;
+    prompt: string;
 }
 
 export const GPT_MODEL_LIST: {[key: string]: GPTModelConfig} = {
@@ -99,7 +106,7 @@ export const validateGPTModel = (model: string) => {
 
 export const rethrowOpenaiError = (error: any) => {
     if (error?.response?.data?.error) {
-        return new OpenaiAPIError(error.response.data.error.message);
+        return new OpenaiAPIError(error.response.data.error.message || error.response.data.error.code);
     }
     return error;
 };
@@ -108,7 +115,7 @@ export const processInstructions = async ({
     modelConfig,
     openai,
     prompt,
-} : { modelConfig: GPTModelConfig, openai: OpenAIApi, prompt: string }) => {
+} : ProcessInstructionsOptions) => {
     let answer = '';
     let usage = {} as CreateCompletionResponseUsage;
     const promptTokenLength = getNumberOfTextTokens(prompt);
@@ -145,6 +152,23 @@ export const processInstructions = async ({
         answer,
         usage,
     };
+};
+
+export const processInstructionsWithRetry = (options: ProcessInstructionsOptions) => {
+    const process: RetryFunction<any> = async (stopTrying: (e: Error) => void) => {
+        try {
+            return await processInstructions(options);
+        } catch (error: any) {
+            if (![429, 500, 503].includes(error?.response?.status)) {
+                stopTrying(error);
+            }
+            throw error;
+        }
+    };
+    return retry(process, {
+        retries: 5,
+        minTimeout: 500,
+    });
 };
 
 export class OpenaiAPIUsage {
