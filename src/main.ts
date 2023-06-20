@@ -119,8 +119,8 @@ const crawler = new PlaywrightCrawler({
         let answer = '';
         const modelConfig = contentTokenLength < SMALLER_MODEL_TOKENS_THRESHOLD ? smallModelConfig : largeModelConfig;
         const openaiUsage = new OpenaiAPIUsage(modelConfig.model);
-        if (contentTokenLength > modelConfig.maxTokens) {
-            const contentMaxTokens = (modelConfig.maxTokens * 0.9) - instructionTokenLength; // 10% buffer for answer
+        const contentMaxTokens = (modelConfig.maxTokens * 0.9) - instructionTokenLength; // 10% buffer for answer
+        if (contentTokenLength > contentMaxTokens) {
             const truncatedContent = shortsTextByTokenLength(pageContent, contentMaxTokens);
             log.info(
                 `Processing page ${request.url} with truncated text using GPT instruction...`,
