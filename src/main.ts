@@ -133,7 +133,7 @@ const crawler = new PlaywrightCrawler({
                 { promptTokenLength: getNumberOfTextTokens(prompt), contentMaxTokens, truncatedContentLength: getNumberOfTextTokens(truncatedContent) },
             );
             try {
-                const answerResult = await processInstructionsWithRetry({ prompt, openai, modelConfig });
+                const answerResult = await processInstructionsWithRetry({ prompt, openai, modelConfig, apifyClient: Actor.apifyClient });
                 answer = answerResult.answer;
                 openaiUsage.logApiCallUsage(answerResult.usage);
             } catch (err: any) {
@@ -146,7 +146,7 @@ const crawler = new PlaywrightCrawler({
             );
             const prompt = `${input.instructions}\`\`\`${pageContent}\`\`\``;
             try {
-                const answerResult = await processInstructionsWithRetry({ prompt, openai, modelConfig });
+                const answerResult = await processInstructionsWithRetry({ prompt, openai, modelConfig, apifyClient: Actor.apifyClient });
                 answer = answerResult.answer;
                 openaiUsage.logApiCallUsage(answerResult.usage);
             } catch (err: any) {

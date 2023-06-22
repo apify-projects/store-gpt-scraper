@@ -2,6 +2,7 @@ import { log } from 'crawlee';
 import { encode } from 'gpt-3-encoder';
 import { Configuration, OpenAIApi, CreateCompletionResponseUsage } from 'openai';
 import retry, { RetryFunction } from 'async-retry';
+import { type ApifyClient } from 'apify-client';
 import { OpenaiAPIError } from './errors.js';
 
 export const getOpenAIClient = (apiKey: string, organization?: string) => {
@@ -29,6 +30,7 @@ interface ProcessInstructionsOptions {
     modelConfig: GPTModelConfig;
     openai: OpenAIApi;
     prompt: string;
+    apifyClient: ApifyClient;
 }
 
 export const GPT_MODEL_LIST: {[key: string]: GPTModelConfig} = {
@@ -155,18 +157,20 @@ export const processInstructions = async ({
 };
 
 export const processInstructionsWithRetry = (options: ProcessInstructionsOptions) => {
-    const process: RetryFunction<any> = async (stopTrying: (e: Error) => void) => {
+    const process: RetryFunction<any> = async (stopTrying: (e: Error) => void, attempt: number) => {
         try {
             return await processInstructions(options);
         } catch (error: any) {
             if (![429, 500, 503].includes(error?.response?.status)) {
                 stopTrying(error);
             }
+            // Add rate limit error to stats, the autoscaled pool will use it to scale down the pool.
+            if (error?.response?.status === 429) options.apifyClient.stats.addRateLimitError(attempt);
             throw error;
         }
     };
     return retry(process, {
-        retries: 5,
+        retries: 8,
         minTimeout: 500,
     });
 };
