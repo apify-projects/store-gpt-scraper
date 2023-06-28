@@ -2,7 +2,7 @@ import { Actor, log } from 'apify';
 import { Input } from './input.js';
 
 // We used just one model to simplify pricing, but we can test with other models, but it cannot be set in input for now.
-const DEFAULT_PEY_PER_RESULT_OPENAI_MODEL = 'gpt-3.5';
+const DEFAULT_PEY_PER_RESULT_OPENAI_MODEL = 'gpt-3.5-turbo';
 
 // Initialize the Apify SDK
 await Actor.init();
