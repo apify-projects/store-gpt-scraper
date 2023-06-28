@@ -23,12 +23,9 @@ const input = await Actor.getInput() as Input;
 
 if (!input) throw new Error('INPUT cannot be empty!');
 // @ts-ignore
-const openai = await getOpenAIClient(process.env.OPENAI_API_KEY, process.env.OPENAI_ORGANIZATION_ID);
+const openai = await getOpenAIClient(input.openaiApiKey);
 const modelConfig = validateGPTModel(input.model);
 const requestList = await RequestList.open('start-urls', input.startUrls);
-
-let maxPaidDatasetItems: number | undefined;
-let maxRequestsPerCrawl: number | undefined = input.maxPagesPerCrawl;
 
 const crawler = new PlaywrightCrawler({
     launchContext: {
@@ -50,7 +47,7 @@ const crawler = new PlaywrightCrawler({
     // NOTE: GPT-4 is very slow, so we need to increase the timeout
     requestHandlerTimeoutSecs: 3 * 60,
     proxyConfiguration: input.proxyConfiguration && await Actor.createProxyConfiguration(input.proxyConfiguration),
-    maxRequestsPerCrawl,
+    maxRequestsPerCrawl: input.maxPagesPerCrawl,
     requestList,
 
     async requestHandler({ request, page, enqueueLinks }) {
