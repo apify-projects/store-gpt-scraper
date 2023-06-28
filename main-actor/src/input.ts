@@ -7,8 +7,9 @@ export interface Input {
     startUrls: RequestOptions[];
     globs: GlobInput[];
     linkSelector?: string;
+    openaiApiKey: string;
     instructions: string;
-    model?: string;
+    model: string;
     targetSelector?: string;
     maxPagesPerCrawl: number;
     maxCrawlingDepth: number;

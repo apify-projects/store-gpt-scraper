@@ -44,17 +44,13 @@ export const GPT_MODEL_LIST: {[key: string]: GPTModelConfig} = {
         maxTokens: 4097,
         interface: 'chat',
         cost: {
-            input: 0.002,
+            input: 0.0015,
             output: 0.002,
         },
     },
     'gpt-3.5-turbo-16k': {
         model: 'gpt-3.5-turbo-16k',
-        // maxTokens: 16384,
-        // It allows 16,384 tokens, but we set up pricing based on 4097 tokens, but let's allow 8192 tokens YOLO.
-        maxTokens: 8192,
-        // Output tokens are expensive, let's limit them to not go crazy, but still YOLO.
-        maxOutputTokens: 2048,
+        maxTokens: 16384,
         interface: 'chat',
         cost: {
             input: 0.003,
@@ -88,9 +84,18 @@ export const GPT_MODEL_LIST: {[key: string]: GPTModelConfig} = {
         interface: 'chat',
         cost: {
             input: 0.03,
-            output: 0.03,
+            output: 0.06,
         },
     },
+    'gpt-4-32k': {
+        model: 'gpt-4',
+        maxTokens: 32768,
+        interface: 'chat',
+        cost: {
+            input: 0.06,
+            output: 0.12,
+        },
+    }
 };
 
 export const getNumberOfTextTokens = (text: string) => {
