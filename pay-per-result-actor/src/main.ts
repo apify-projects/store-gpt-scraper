@@ -33,5 +33,5 @@ await Actor.metamorph('drobnikj/extended-gpt-scraper', {
     ...input,
     maxPagesPerCrawl: maxRequestsPerCrawl,
     model: DEFAULT_PEY_PER_RESULT_OPENAI_MODEL,
-    open
+    openaiApiKey: process.env.OPENAI_API_KEY,
 });
