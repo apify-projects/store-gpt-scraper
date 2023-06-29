@@ -80,7 +80,6 @@
             "title": "Use Structure Output",
             "type": "boolean",
             "description": "If true, the output will be stored in structured format.",
-            "prefill": false,
             "editor": "checkbox"
         },
         "schema": {
