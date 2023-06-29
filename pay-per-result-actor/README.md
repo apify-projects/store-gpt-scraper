@@ -76,6 +76,11 @@ This value is a safeguard against infinite crawling depths for misconfigured scr
 
 The maximum number of pages that the scraper will open. 0 means unlimited.
 
+### Formatted output
+
+If you want to get data in a structured format, you can define JSON schema using `Schema` input option.
+This schema will be used to format data into a structured JSON object, which will be stored in the output in jsonAnswer attribute.
+
 ### Proxy configuration
 
 The **Proxy configuration** (`proxyConfiguration`) option enables you to set proxies
@@ -96,7 +101,9 @@ You can skip pages from the output by asking GPT to answer with `skip this page`
 
 - "Summarize this page into three sentences. If the page is about proxies, answer with 'skip this page'.".
 
-### Structured data answer with JSON
+### Structured data answer with JSON [DEPRECATED]
+
+**Deprecated: Use `Schema` input option instead.**
 
 You can instruct GPT to answer with JSON, and the scraper under the hood will parse this JSON and store it as a structured answer, for example:
 
