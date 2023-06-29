@@ -112,5 +112,5 @@
             "editor": "proxy"
         }
     },
-    "required": ["startUrls", "instructions", "token", "model"]
+    "required": ["startUrls", "instructions", "openaiApiKey", "model"]
 }
