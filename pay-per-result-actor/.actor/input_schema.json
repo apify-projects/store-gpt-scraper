@@ -83,7 +83,7 @@
                         "description": "Page description"
                     }
                 },
-                "required": ["nameOfTool", "description"]
+                "required": ["title", "description"]
             },
             "editor": "json"
         },

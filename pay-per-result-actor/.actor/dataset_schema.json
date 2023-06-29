@@ -22,7 +22,7 @@
                         "format": "text"
                     },
                     "jsonAnswer": {
-                        "label": "Parsed JSON answer (if any)",
+                        "label": "JSON answer (if any)",
                         "format": "object"
                     }
                 }
