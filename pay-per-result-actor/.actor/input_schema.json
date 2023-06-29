@@ -59,7 +59,7 @@
         },
         "useStructureOutput": {
             "sectionCaption": "Formatted output",
-            "sectionDescription": "By default, the scraper outputs text answers for each page. If you want to get data in a structured format, you can define JSON schema. The schema will be used to format data into a structured JSON object.",
+            "sectionDescription": "By default, the scraper outputs text answers for each page. If you want to get data in a structured format, you can define JSON schema. The scraper is using [function](https://platform.openai.com/docs/api-reference/chat/create#chat/create-functions), which is called for each page. The function receives the page content and returns the answer in the defined JSON format.",
             "title": "Use JSON schema to format answer",
             "type": "boolean",
             "description": "If true, the answer will be transform in structured format based on schema in `jsonAnswer` attribute.",
@@ -68,7 +68,7 @@
         "schema": {
             "title": "Schema",
             "type": "object",
-            "description": "Defines how the output will be stored in structure format using [JSON Schema](https://json-schema.org/understanding-json-schema/).",
+            "description": "Defines how the output will be stored in structure format using [JSON Schema](https:Defines how the output will be stored in structure format using [JSON Schema](https://json-schema.org/understanding-json-schema/). Keep in mind that it uses [function](https://platform.openai.com/docs/api-reference/chat/create#chat/create-functions) so by setting the description of the fields and the correct title, you can get better results.",
             "prefill": {
                 "type": "object",
                 "properties": {
