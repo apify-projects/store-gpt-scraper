@@ -29,9 +29,9 @@
             "prefill": "a[href]"
         },
         "openaiApiKey": {
-            "title": "Open AI API key",
+            "title": "OpenAI API key",
             "type": "string",
-            "description": "The API key for access Open AI. You can get it from <a href='https://platform.openai.com/account/api-keys' target='_blank' rel='noopener'>Open AI platform</a>.",
+            "description": "The API key for access OpenAI. You can get it from <a href='https://platform.openai.com/account/api-keys' target='_blank' rel='noopener'>OpenAI platform</a>.",
             "editor": "textfield",
             "isSecret": true
         },
@@ -45,7 +45,7 @@
         "model": {
             "title": "GPT model",
             "type": "string",
-            "description": "Select GPT model, see <a href='https://platform.openai.com/docs/models/overview' target='_blank' rel='noopener'>models overview</a>.",
+            "description": "Select GPT model, see <a href='https://platform.openai.com/docs/models/overview' target='_blank' rel='noopener'>models overview</a>. Keep in mind that each model has different pricing and features.",
             "editor": "select",
             "default": "gpt-3.5-turbo",
             "prefill": "gpt-3.5-turbo",
@@ -112,5 +112,5 @@
             "editor": "proxy"
         }
     },
-    "required": ["startUrls", "instructions" ]
+    "required": ["startUrls", "instructions", "token", "model"]
 }

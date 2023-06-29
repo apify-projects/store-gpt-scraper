@@ -1,6 +1,7 @@
 # Extended GPT Scraper
 
-GPT Scraper is a powerful tool that leverages OpenAI's API to modify text obtained from a scraper. You can use the scraper to extract content from a website and then pass that content to the OpenAI API to make the GPT magic happen.
+GPT Scraper is a powerful tool that leverages OpenAI's API to modify text obtained from a scraper.
+You can use the scraper to extract content from a website and then pass that content to the OpenAI API to make the GPT magic happen.
 
 ## How it works?
 
@@ -11,15 +12,22 @@ If the content didn't fit into the GPT limit, the scraper will truncate the cont
 
 ## How much does it cost?
 
-TBD
+There are two costs associated with using GPT Scraper.
 
-## Usage
+### Cost of the OpenAI API
 
-TBD token from OpenAI
+You can find the cost of the OpenAI API on the [OpenAI pricing page](https://openai.com/pricing/).
+The cost is wary of the model you are using and the length of the content you are sending to the API from scraping.
 
-To get started with GPT Scraper, you need to set up the pages you want to scrape using [**Start URLs**](#start-urls) and then set up instructions on how the GTP scraper should handle each page. For instance, a simple scraper to load the URL https://news.ycombinator.com/ and instruct GPT to extract information from it will look like this:
+### Cost of the scraping itself
 
-![img](https://apify-uploads-prod.s3.amazonaws.com/11dd5210-7a03-4fd1-b157-3709d3296cf8_example_input_2.png)
+The cost of the scraper is almost the same as the cost Web Scraper. You can find information about the cost on [the pricing page](https://apify.com/pricing) under the Detailed Pricing breakdown section.
+The cost estimates are based on averages and may vary depending on the complexity of the pages you scrape.
+
+## How to use it?
+
+To get started with GPT Scraper, you need to set up the pages you want to scrape using [**Start URLs**](#start-urls), set up instructions on how the GTP scraper should handle each page and OpenAI API key.
+NOTE: You can find the OpenAI API key in your [OpenAI dashboard](https://beta.openai.com/account/api-keys).
 
 You can configure the scraper and GTP using Input configuration to set up a more complex workflow.
 
@@ -57,6 +65,10 @@ following URLs:
 -   `http://www.example.com/pages/my-awesome-page`
 -   `http://www.example.com/pages/something`
 
+### OpenAI API key
+
+The API key for accessing OpenAI. You can get it from <a href='https://platform.openai.com/account/api-keys' target='_blank' rel='noopener'>OpenAI platform</a>.
+
 ### Instructions and prompts for GPT
 
 This option tells GPT how to handle page content, e.g. you can send these prompts.
@@ -67,6 +79,12 @@ This option tells GPT how to handle page content, e.g. you can send these prompt
 You can also instruct OpenAI to answer with "skip this page" if you don't want to process all the scraped content, e.g.
 
 - "Summarize this page into three sentences. If the page is about proxies, answer with 'skip this page'.".
+
+### GPT Model
+
+The **GPT Model** (`model`) option specifies which GPT model to use.
+You can find more information about the models on the [OpenAI API documentation](https://platform.openai.com/docs/models/overview).
+Keep in mind that each model has different pricing and features.
 
 ### Max crawling depth
 
@@ -82,119 +100,3 @@ The maximum number of pages that the scraper will open. 0 means unlimited.
 The **Proxy configuration** (`proxyConfiguration`) option enables you to set proxies
 the scraper will use that to prevent its detection by target websites.
 You can use both [Apify Proxy](https://apify.com/proxy) and custom HTTP or SOCKS5 proxy servers.
-
-## Limits
-
-The GPT model itself has a limit on the amount of content it can handle (i.e. maximum token limit). The scraped content will be truncated when this limit is reached.
-
-## Tips & tricks
-
-Here are a few hidden features that you might find helpful.
-
-### Skip pages from the output
-
-You can skip pages from the output by asking GPT to answer with `skip this page`, for example:
-
-- "Summarize this page into three sentences. If the page is about proxies, answer with 'skip this page'.".
-
-### Structured data answer with JSON
-
-You can instruct GPT to answer with JSON, and the scraper under the hood will parse this JSON and store it as a structured answer, for example:
-
-- "Find all links on this page and return them as JSON. There will be one attribute, `links`, containing an array of URLs."
-
-## Example usage
-
-Here are some example use cases that you can use as a starting point for your own GTP scraping experiments.
-
-### Summarize a page
-
-**Start URL:**
-- https://en.wikipedia.org/wiki/COVID-19_pandemic
-
-**Instructions for GPT**:
-```text
-Summarize this page into three sentences.
-```
-
-**Results**:
-```json
-[
-  {
-    "url": "https://en.wikipedia.org/wiki/COVID-19_pandemic",
-    "answer": "This page on Wikipedia provides comprehensive information on the COVID-19 pandemic, including its epidemiology, disease symptoms and prevention strategies. The page also covers the history of the pandemic, national responses, and other measures taken by organizations such as the WHO and UN. The information is organized through a series of subsections for easy navigation.",
-    "jsonAnswer": null
-  }
-]
-```
-
-### Extract keywords from a blog post
-
-**Start URL:**
-- https://blog.apify.com/step-by-step-guide-to-scraping-amazon/
-
-**Prompt for GPT**
-```Extract keywords from this blog post.```
-
-**Results**:
-```json
-[{
-  "url": "https://blog.apify.com/step-by-step-guide-to-scraping-amazon/",
-  "answer": "Keywords: Web Scraping, Tutorial, Apify, Updates, Automation, Data Extraction, Ecommerce, Amazon, Product Data, API, Title, URL, Descriptions, Features, Prices, Images, Seller, Stock Status, ASINs, Proxy, Scraping.",
-}]
-```
-
-### Summarize reviews of movies, games, or products
-
-**Start URL:**
-- https://www.imdb.com/title/tt10366206/reviews
-
-**Instructions for GPT**:
-```text
-Analyze all user reviews for this movie and summarize the consensus.
-```
-
-**Results**:
-```json
-[{
-  "url": "https://www.imdb.com/title/tt10366206/reviews",
-  "answer": "The consensus among user reviews for John Wick: Chapter 4 (2023) is that it delivers exceptional action scenes and lives up to the high standards set by the previous films in the franchise. Many users praised the creativity and variety of the fight scenes, and Donnie Yen's performance in particular. Some noted minor flaws, such as an anticlimactic ending and a subplot with a tracker that did not feel consequential. Overall, users highly recommended the film to fans of the series and action movies in general.",
-}]
-```
-
-### Find contact details on a web page
-
-**Start URL:**
-- https://apify.com/contact
-
-**Instructions for GPT**:
-```text
-Please find contact details on this page and return them as JSON.
-There will be attributes, companyEmail, companyWeb, githubUrl, twitterUrl,
-vatId, businessId and backAccountNumber.
-```
-
-**Results**:
-```json
-[
-  {
-    "url": "https://apify.com/contact",
-    "answer": "{\n    \"companyEmail\": \"hello@apify.com\",\n    \"companyWeb\": \"https://apify.com\",\n    \"githubUrl\": \"https://github.com/apify\",\n    \"twitterUrl\": \"https://twitter.com/apify\",\n    \"vatId\": \"CZ04788290\",\n    \"businessId\": \"04788290\",\n    \"backAccountNumber\": \"CZ0355000000000027434378\"\n}",
-    "jsonAnswer": {
-      "companyEmail": "hello@apify.com",
-      "companyWeb": "https://apify.com",
-      "githubUrl": "https://github.com/apify",
-      "twitterUrl": "https://twitter.com/apify",
-      "vatId": "CZ04788290",
-      "businessId": "04788290",
-      "backAccountNumber": "CZ0355000000000027434378"
-    }
-  }
-]
-```
-
-## Other suggested use cases
-
-* Find typos and grammatical errors across your entire website
-* Analyze competing content to find keywords or ideas
-* Examine code examples in content to find errors or suggest improvements

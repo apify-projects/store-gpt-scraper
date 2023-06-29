@@ -14,6 +14,10 @@ If the content didn't fit into the GPT limit, the scraper will truncate the cont
 GPT Scraper costs $0.009 per processed page. This price also includes the cost of the OpenAI API.
 A free Apify account gives you $5 free usage credit each month, so you can scrape up to 555 pages for free.
 
+## Extended version
+
+If you are looking for a more powerful GPT Scraper where you can select GPT model you want to use and more, check out [Extended GPT Scraper](https://apify.com/drobnikj/extended-gpt-scraper).
+
 ## Usage
 
 To get started with GPT Scraper, you need to set up the pages you want to scrape using [**Start URLs**](#start-urls) and then set up instructions on how the GTP scraper should handle each page. For instance, a simple scraper to load the URL https://news.ycombinator.com/ and instruct GPT to extract information from it will look like this:
@@ -90,7 +94,7 @@ You can use both [Apify Proxy](https://apify.com/proxy) and custom HTTP or SOCKS
 ## Limits
 
 The GPT model itself has a limit on the amount of content it can handle (i.e. maximum token limit). The scraped content will be truncated when this limit is reached.
-
+If you are looking for a more experienced version where you can use more than 4096 tokens, you can check out the [Extended GPT Scraper](https://apify.com/drobnikj/extended-gpt-scraper) actor.
 ## Tips & tricks
 
 Here are a few hidden features that you might find helpful.
