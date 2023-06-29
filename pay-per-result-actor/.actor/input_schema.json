@@ -67,6 +67,7 @@
         },
         "schema": {
             "sectionCaption": "Structure Output",
+            "sectionDescription": "If you want to store output in structured format, you can define schema for it. If the schema is used, the structure data will be under `jsonAnswer` for each page in results.",
             "title": "Schema",
             "type": "object",
             "description": "Defines how the output will be stored in structure format using JSON Schema. TODO add link to docs.",
