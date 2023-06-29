@@ -1,6 +1,7 @@
 import { Actor } from 'apify';
 import { PlaywrightCrawler, Dataset, log, RequestList } from 'crawlee';
 import { createRequestDebugInfo } from '@crawlee/utils';
+import Ajv, { AnySchema } from 'ajv';
 import { Input } from './input.js';
 import {
     processInstructionsWithRetry,
@@ -13,7 +14,6 @@ import {
 import {
     htmlToMarkdown,
     shortsTextByTokenLength,
-    tryToParseJsonFromString,
 } from './processors.js';
 
 // Initialize the Apify SDK
@@ -26,6 +26,22 @@ if (!input) throw new Error('INPUT cannot be empty!');
 const openai = await getOpenAIClient(input.openaiApiKey);
 const modelConfig = validateGPTModel(input.model);
 const requestList = await RequestList.open('start-urls', input.startUrls);
+
+// Validate schema
+let schema: undefined | AnySchema;
+const { schema: uncheckJsonSchema, useStructureOutput } = input;
+if (useStructureOutput) {
+    if (!uncheckJsonSchema) {
+        throw new Error('Schema is required when using structured output.');
+    }
+    schema = uncheckJsonSchema;
+    try {
+        const validator = new Ajv();
+        validator.compile(schema);
+    } catch (e: any) {
+        throw new Error(`Schema is not valid: ${e.message}`);
+    }
+}
 
 const crawler = new PlaywrightCrawler({
     launchContext: {
@@ -86,52 +102,49 @@ const crawler = new PlaywrightCrawler({
             originalContentHtml = await page.content();
         }
 
-        const pageContent = htmlToMarkdown(originalContentHtml);
+        let pageContent = htmlToMarkdown(originalContentHtml);
         const contentTokenLength = getNumberOfTextTokens(pageContent);
         const instructionTokenLength = getNumberOfTextTokens(input.instructions);
 
         let answer = '';
+        let jsonAnswer: null | object;
         const openaiUsage = new OpenaiAPIUsage(modelConfig.model);
         const contentMaxTokens = (modelConfig.maxTokens * 0.9) - instructionTokenLength; // 10% buffer for answer
         if (contentTokenLength > contentMaxTokens) {
-            const truncatedContent = shortsTextByTokenLength(pageContent, contentMaxTokens);
+            pageContent = shortsTextByTokenLength(pageContent, contentMaxTokens);
             log.info(
                 `Processing page ${request.url} with truncated text using GPT instruction...`,
-                { originalContentLength: pageContent.length, contentLength: truncatedContent.length, contentMaxTokens },
+                { originalContentLength: pageContent.length, contentLength: pageContent.length, contentMaxTokens },
             );
             log.warning(`Content was truncated for ${request.url} to match GPT maxTokens limit.`, { url: request.url, maxTokensLimit: modelConfig.maxTokens });
-            const prompt = `${input.instructions}\`\`\`${truncatedContent}\`\`\``;
             log.debug(
                 `Truncated content for ${request.url}`,
-                { promptTokenLength: getNumberOfTextTokens(prompt), contentMaxTokens, truncatedContentLength: getNumberOfTextTokens(truncatedContent) },
+                { contentMaxTokens, truncatedContentLength: getNumberOfTextTokens(pageContent) },
             );
-            try {
-                const answerResult = await processInstructionsWithRetry({ prompt, openai, modelConfig, apifyClient: Actor.apifyClient });
-                answer = answerResult.answer;
-                openaiUsage.logApiCallUsage(answerResult.usage);
-            } catch (err: any) {
-                throw rethrowOpenaiError(err);
-            }
         } else {
             log.info(
                 `Processing page ${request.url} with GPT instruction...`,
                 { contentLength: pageContent.length, contentTokenLength },
             );
-            const prompt = `${input.instructions}\`\`\`${pageContent}\`\`\``;
-            try {
-                const answerResult = await processInstructionsWithRetry({ prompt, openai, modelConfig, apifyClient: Actor.apifyClient });
-                answer = answerResult.answer;
-                openaiUsage.logApiCallUsage(answerResult.usage);
-            } catch (err: any) {
-                throw rethrowOpenaiError(err);
-            }
         }
 
-        if (!answer) {
-            log.error('No answer was returned.', { url: request.url });
-            return;
+        try {
+            const answerResult = await processInstructionsWithRetry({
+                instructions: input.instructions,
+                content: pageContent,
+                schema,
+                openai,
+                modelConfig,
+                apifyClient: Actor.apifyClient,
+            });
+            answer = answerResult.answer;
+            jsonAnswer = answerResult.jsonAnswer;
+            openaiUsage.logApiCallUsage(answerResult.usage);
+        } catch (err: any) {
+            throw rethrowOpenaiError(err);
         }
-        const answerLowerCase = answer.toLocaleLowerCase();
+
+        const answerLowerCase = answer?.toLocaleLowerCase() || '';
         if (answerLowerCase.includes('skip this page')
             || answerLowerCase.includes('skip this url')
             || answerLowerCase.includes('skip the page')
@@ -153,7 +166,7 @@ const crawler = new PlaywrightCrawler({
         await Dataset.pushData({
             url: request.loadedUrl,
             answer,
-            jsonAnswer: tryToParseJsonFromString(answer),
+            jsonAnswer,
             '#debug': {
                 model: modelConfig.model,
                 openaiUsage: openaiUsage.usage,

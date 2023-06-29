@@ -1,4 +1,5 @@
 import { ProxyConfigurationOptions, GlobInput, RequestOptions } from '@crawlee/core';
+import { AnySchema } from 'ajv';
 
 /**
  * Input schema in TypeScript format.
@@ -14,6 +15,8 @@ export interface Input {
     maxPagesPerCrawl: number;
     maxCrawlingDepth: number;
     proxyConfiguration: ProxyConfigurationOptions;
+    schema?: AnySchema;
+    useStructureOutput?: boolean;
 }
 
 export const HTML_TAGS_TO_IGNORE = ['script', 'style', 'noscript'];

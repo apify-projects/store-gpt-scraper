@@ -74,6 +74,23 @@
             "default": 10,
             "unit": "pages"
         },
+        "useStructureOutput": {
+            "sectionCaption": "Structure Output",
+            "sectionDescription": "If you want to store output in structured format, you can define schema for it. If the schema is used, the structure data will be under `jsonAnswer` for each page in results.",
+            "title": "Use Structure Output",
+            "type": "boolean",
+            "description": "If true, the output will be stored in structured format.",
+            "prefill": false,
+            "editor": "checkbox"
+        },
+        "schema": {
+            "sectionCaption": "Structure Output",
+            "title": "Schema",
+            "type": "object",
+            "description": "Defines how the output will be stored in structure format using JSON Schema. TODO add link to docs.",
+            "prefill": "{}",
+            "editor": "json"
+        },
         "proxyConfiguration": {
             "sectionCaption": "Proxy configuration",
             "title": "Proxy configuration",
