@@ -70,7 +70,20 @@
             "title": "Schema",
             "type": "object",
             "description": "Defines how the output will be stored in structure format using JSON Schema. TODO add link to docs.",
-            "prefill": "{}",
+            "prefill": {
+                "type": "object",
+                "properties": {
+                    "title": {
+                        "type": "string",
+                        "description": "Page title"
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "Page description"
+                    }
+                },
+                "required": ["nameOfTool", "description"]
+            },
             "editor": "json"
         },
         "proxyConfiguration": {
