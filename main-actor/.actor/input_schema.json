@@ -76,7 +76,7 @@
         },
         "useStructureOutput": {
             "sectionCaption": "Formatted output",
-            "sectionDescription": "By default, the scraper output text answers for each page. If you want to get data in a structured format, you can define JSON schema. The schema will be used to format data into a structured JSON object.",
+            "sectionDescription": "By default, the scraper outputs text answers for each page. If you want to get data in a structured format, you can define JSON schema. The schema will be used to format data into a structured JSON object.",
             "title": "Use JSON schema to format answer",
             "type": "boolean",
             "description": "If true, the answer will be transform in structured format based on schema in `jsonAnswer` attribute.",
