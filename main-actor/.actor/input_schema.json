@@ -85,7 +85,7 @@
         "schema": {
             "title": "Schema",
             "type": "object",
-            "description": "Defines how the output will be stored in structure format using [JSON Schema](https:Defines how the output will be stored in structure format using [JSON Schema](https://json-schema.org/understanding-json-schema/). Keep in mind that it uses [function](https://platform.openai.com/docs/api-reference/chat/create#chat/create-functions) so by setting the description of the fields and the correct title, you can get better results.",
+            "description": "Defines how the output will be stored in structure format using [JSON Schema[JSON Schema](https://json-schema.org/understanding-json-schema/). Keep in mind that it uses [function](https://platform.openai.com/docs/api-reference/chat/create#chat/create-functions) so by setting the description of the fields and the correct title, you can get better results.",
             "prefill": {
                 "type": "object",
                 "properties": {
