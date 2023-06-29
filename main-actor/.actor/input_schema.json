@@ -75,17 +75,17 @@
             "unit": "pages"
         },
         "useStructureOutput": {
-            "sectionCaption": "Structure Output",
-            "sectionDescription": "If you want to store output in structured format, you can define schema for it. If the schema is used, the structure data will be under `jsonAnswer` for each page in results.",
-            "title": "Use Structure Output",
+            "sectionCaption": "Formatted output",
+            "sectionDescription": "By default, the scraper output text answers for each page. If you want to get data in a structured format, you can define JSON schema. The schema will be used to format data into a structured JSON object.",
+            "title": "Use JSON schema to format answer",
             "type": "boolean",
-            "description": "If true, the output will be stored in structured format.",
+            "description": "If true, the answer will be transform in structured format based on schema in `jsonAnswer` attribute.",
             "editor": "checkbox"
         },
         "schema": {
             "title": "Schema",
             "type": "object",
-            "description": "Defines how the output will be stored in structure format using JSON Schema. TODO add link to docs.",
+            "description": "Defines how the output will be stored in structure format using [JSON Schema](https://json-schema.org/understanding-json-schema/).",
             "prefill": {
                 "type": "object",
                 "properties": {
