@@ -3,7 +3,9 @@ import { encode } from 'gpt-3-encoder';
 import { Configuration, OpenAIApi, CreateCompletionResponseUsage } from 'openai';
 import retry, { RetryFunction } from 'async-retry';
 import { type ApifyClient } from 'apify-client';
+import { AnySchema } from 'ajv';
 import { OpenaiAPIError } from './errors.js';
+import { tryToParseJsonFromString } from './processors.js';
 
 export const getOpenAIClient = (apiKey: string, organization?: string) => {
     const configuration = new Configuration({
@@ -29,10 +31,16 @@ interface GPTModelConfig {
 interface ProcessInstructionsOptions {
     modelConfig: GPTModelConfig;
     openai: OpenAIApi;
-    prompt: string;
     apifyClient: ApifyClient;
+    instructions: string;
+    schema?: AnySchema;
+    content: string;
 }
 
+/**
+ * List of GPT models that can be used.
+ * Should be in sync with https://platform.openai.com/docs/models/
+ */
 export const GPT_MODEL_LIST: {[key: string]: GPTModelConfig} = {
     'text-davinci-003': {
         model: 'text-davinci-003',
@@ -44,17 +52,13 @@ export const GPT_MODEL_LIST: {[key: string]: GPTModelConfig} = {
         maxTokens: 4097,
         interface: 'chat',
         cost: {
-            input: 0.002,
+            input: 0.0015,
             output: 0.002,
         },
     },
     'gpt-3.5-turbo-16k': {
         model: 'gpt-3.5-turbo-16k',
-        // maxTokens: 16384,
-        // It allows 16,384 tokens, but we set up pricing based on 4097 tokens, but let's allow 8192 tokens YOLO.
-        maxTokens: 8192,
-        // Output tokens are expensive, let's limit them to not go crazy, but still YOLO.
-        maxOutputTokens: 2048,
+        maxTokens: 16384,
         interface: 'chat',
         cost: {
             input: 0.003,
@@ -88,7 +92,16 @@ export const GPT_MODEL_LIST: {[key: string]: GPTModelConfig} = {
         interface: 'chat',
         cost: {
             input: 0.03,
-            output: 0.03,
+            output: 0.06,
+        },
+    },
+    'gpt-4-32k': {
+        model: 'gpt-4',
+        maxTokens: 32768,
+        interface: 'chat',
+        cost: {
+            input: 0.06,
+            output: 0.12,
         },
     },
 };
@@ -113,49 +126,97 @@ export const rethrowOpenaiError = (error: any) => {
     return error;
 };
 
+/**
+ * Calls OpenAI API and process content with user instructions.
+ * @param modelConfig
+ * @param openai
+ * @param instructions
+ * @param content
+ * @param schema
+ */
 export const processInstructions = async ({
     modelConfig,
     openai,
-    prompt,
-} : ProcessInstructionsOptions) => {
-    let answer = '';
+    instructions,
+    content,
+    schema,
+} : ProcessInstructionsOptions): Promise<object> => {
+    let answer: string | null = null;
+    let jsonAnswer: null | object = null;
     let usage = {} as CreateCompletionResponseUsage;
-    const promptTokenLength = getNumberOfTextTokens(prompt);
-
+    const promptTokenLength = getNumberOfTextTokens(`${instructions}\`\`\`${content}\`\`\``);
     const maxTokensNeeded = modelConfig.maxTokens - promptTokenLength - 150;
     // Limits tokens to maxOutputTokens if defined
     const maxTokens = modelConfig.maxOutputTokens ? Math.min(maxTokensNeeded, modelConfig.maxOutputTokens) : maxTokensNeeded;
     log.debug(`Calling Openai API with model ${modelConfig.model}`, { promptTokenLength });
     if (modelConfig.interface === 'text') {
+        if (schema) {
+            log.warning(`Schema is not supported for model ${modelConfig.model}`);
+        }
         const completion = await openai.createCompletion({
             model: modelConfig.model,
-            prompt,
+            prompt: `${instructions}\`\`\`${content}\`\`\``,
             max_tokens: maxTokens,
         });
         answer = completion?.data?.choices[0]?.text || '';
+        jsonAnswer = tryToParseJsonFromString(answer);
         if (completion?.data?.usage) usage = completion?.data?.usage;
     } else if (modelConfig.interface === 'chat') {
-        const conversation = await openai.createChatCompletion({
+        const conversationOpts = {
             model: modelConfig.model,
-            messages: [
-                {
-                    role: 'user',
-                    content: prompt,
-                },
-            ],
             max_tokens: maxTokens,
-        });
-        answer = conversation?.data?.choices[0]?.message?.content || '';
+        };
+        let conversation;
+        if (schema) {
+            conversation = await openai.createChatCompletion({
+                ...conversationOpts,
+                messages: [
+                    {
+                        role: 'user',
+                        content,
+                    },
+                ],
+                functions: [
+                    {
+                        name: 'extract_function',
+                        description: instructions,
+                        // @ts-ignore
+                        parameters: schema,
+                    },
+                ],
+            });
+            if (conversation?.data?.choices[0]?.message?.function_call && conversation?.data?.choices[0]?.message?.function_call?.arguments) {
+                jsonAnswer = JSON.parse(conversation?.data?.choices[0]?.message?.function_call?.arguments);
+            }
+            answer = conversation?.data?.choices[0]?.message?.content || null;
+        } else {
+            conversation = await openai.createChatCompletion({
+                ...conversationOpts,
+                messages: [
+                    {
+                        role: 'user',
+                        content: `${instructions}\`\`\`${content}\`\`\``,
+                    },
+                ],
+            });
+            answer = conversation?.data?.choices[0]?.message?.content || '';
+            jsonAnswer = tryToParseJsonFromString(answer);
+        }
         if (conversation?.data?.usage) usage = conversation?.data?.usage;
     } else {
         throw new Error(`Unsupported interface ${modelConfig.interface}`);
     }
     return {
         answer,
+        jsonAnswer,
         usage,
     };
 };
 
+/**
+ * Calls processInstructions with exponential backoff.
+ * @param options
+ */
 export const processInstructionsWithRetry = (options: ProcessInstructionsOptions) => {
     const process: RetryFunction<any> = async (stopTrying: (e: Error) => void, attempt: number) => {
         try {

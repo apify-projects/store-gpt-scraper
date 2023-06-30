@@ -7,14 +7,14 @@
         "startUrls": {
             "title": "Start URLs",
             "type": "array",
-            "description": "A static list of URLs to scrape. <br><br>For details, see <a href='https://apify.com/apify/web-scraper#start-urls' target='_blank' rel='noopener'>Start URLs</a> in README.",
+            "description": "A static list of URLs to scrape. <br><br>For details, see <a href='https://apify.com/drobnikj/gpt-scraper#start-urls' target='_blank' rel='noopener'>Start URLs</a> in README.",
             "prefill": [
                 { "url": "https://news.ycombinator.com/" }
             ],
             "editor": "requestListSources"
         },
         "globs": {
-            "title": "Glob Patterns",
+            "title": "Glob patterns",
             "type": "array",
             "description": "Glob patterns to match links in the page that you want to enqueue. Combine with Link selector to tell the scraper where to find links. Omitting the Glob patterns will cause the scraper to enqueue all links matched by the Link selector.",
             "editor": "globs",
@@ -24,7 +24,7 @@
         "linkSelector": {
             "title": "Link selector",
             "type": "string",
-            "description": "A CSS selector saying which links on the page (<code>&lt;a&gt;</code> elements with <code>href</code> attribute) shall be followed and added to the request queue. To filter the links added to the queue, use the <b>Pseudo-URLs</b> setting.<br><br>If <b>Link selector</b> is empty, the page links are ignored.<br><br>For details, see <a href='https://apify.com/apify/web-scraper#link-selector' target='_blank' rel='noopener'>Link selector</a> in README.",
+            "description": "A CSS selector saying which links on the page (<code>&lt;a&gt;</code> elements with <code>href</code> attribute) shall be followed and added to the request queue. To filter the links added to the queue, use the <b>Pseudo-URLs</b> setting.<br><br>If <b>Link selector</b> is empty, the page links are ignored.<br><br>For details, see <a href='https://apify.com/drobnikj/gpt-scraper#link-selector' target='_blank' rel='noopener'>Link selector</a> in README.",
             "editor": "textfield",
             "prefill": "a[href]"
         },
@@ -57,11 +57,39 @@
             "default": 10,
             "unit": "pages"
         },
+        "useStructureOutput": {
+            "sectionCaption": "Formatted output",
+            "sectionDescription": "By default, the scraper outputs text answers for each page. If you want to get data in a structured format, you can define a JSON schema. The scraper uses [function](https://platform.openai.com/docs/api-reference/chat/create#chat/create-functions), which is called for each page. The function receives the page content and returns the answer in the defined JSON format.",
+            "title": "Use JSON schema to format answer",
+            "type": "boolean",
+            "description": "If true, the answer will be transformed into a structured format based on the schema in the `jsonAnswer` attribute.",
+            "editor": "checkbox"
+        },
+        "schema": {
+            "title": "Schema",
+            "type": "object",
+            "description": "This defines how the output will be stored in structured format using [JSON Schema[JSON Schema](https://json-schema.org/understanding-json-schema/). Keep in mind that it uses [function](https://platform.openai.com/docs/api-reference/chat/create#chat/create-functions), so by setting the description of the fields and the correct title, you can get better results.",
+            "prefill": {
+                "type": "object",
+                "properties": {
+                    "title": {
+                        "type": "string",
+                        "description": "Page title"
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "Page description"
+                    }
+                },
+                "required": ["title", "description"]
+            },
+            "editor": "json"
+        },
         "proxyConfiguration": {
             "sectionCaption": "Proxy configuration",
             "title": "Proxy configuration",
             "type": "object",
-            "description": "Specifies proxy servers that will be used by the scraper in order to hide its origin.<br><br>For details, see <a href='https://apify.com/apify/web-scraper#proxy-configuration' target='_blank' rel='noopener'>Proxy configuration</a> in README.",
+            "description": "Specifies proxy servers that will be used by the scraper in order to hide its origin.<br><br>For details, see <a href='https://apify.com/drobnikj/gpt-scraper#proxy-configuration' target='_blank' rel='noopener'>Proxy configuration</a> in README.",
             "prefill": { "useApifyProxy": true },
             "default": { "useApifyProxy": false },
             "editor": "proxy"
