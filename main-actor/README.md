@@ -43,7 +43,7 @@ For a complete list of input fields and their types, please see the outline of t
 
 The **Start URLs** (`startUrls`) field represents the initial list of page URLs that the scraper will visit. You can enter a group of URLs together using file upload or one by one.
 
-The scraper supports adding new URLs to scrape on the fly, either using the **[Link selector](#link-selector)** and **[Glob patterns](#glob-patterns)** options.
+The scraper supports adding new URLs to scrape on the fly, either using the **[Link selector](#link-selector)** or **[Glob patterns](#glob-patterns)** options.
 
 ### Link selector
 
