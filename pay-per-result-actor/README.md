@@ -2,12 +2,12 @@
 
 GPT Scraper is a powerful tool that leverages OpenAI's API to modify text obtained from a scraper. You can use the scraper to extract content from a website and then pass that content to the OpenAI API to make the GPT magic happen.
 
-## How it works?
+## How does GPT Scraper work?
 
 The scraper first loads the page using [Playwright](https://playwright.dev/), then
-it converts the content into markdown format and asks for GPT instruction about markdown content.
+it converts the content into markdown format and asks for GPT instructions about markdown content.
 
-If the content didn't fit into the GPT limit, the scraper will truncate the content. You can find the message about truncation content in the log.
+If the content doesn't fit into the GPT limit, the scraper will truncate the content. You can find the message about truncated content in the log.
 
 ## How much does it cost?
 
@@ -16,17 +16,17 @@ A free Apify account gives you $5 free usage credit each month, so you can scrap
 
 ## Extended version
 
-If you are looking for a more powerful GPT Scraper where you can select GPT model you want to use and more, check out [Extended GPT Scraper](https://apify.com/drobnikj/extended-gpt-scraper).
+If you are looking for a more powerful GPT Scraper that lets you select the GPT model you want to use and provides more features, check out [Extended GPT Scraper](https://apify.com/drobnikj/extended-gpt-scraper).
 
-## Usage
+## How to use GPT Scraper
 
-To get started with GPT Scraper, you need to set up the pages you want to scrape using [**Start URLs**](#start-urls) and then set up instructions on how the GTP scraper should handle each page. For instance, a simple scraper to load the URL https://news.ycombinator.com/ and instruct GPT to extract information from it will look like this:
+To get started with GPT Scraper, you need to set up the pages you want to scrape using [**Start URLs**](#start-urls) and then set up instructions on how the GTP scraper should handle each page. For instance, using a simple scraper to load the URL https://news.ycombinator.com/ and instructing GPT to extract information from it will look like this:
 
 ![img](https://apify-uploads-prod.s3.amazonaws.com/11dd5210-7a03-4fd1-b157-3709d3296cf8_example_input_2.png)
 
-You can configure the scraper and GTP using Input configuration to set up a more complex workflow.
+You can configure the scraper and GPT using Input configuration to set up a more complex workflow.
 
-## Input Configuration
+## Input configuration
 
 GPT Scraper accepts a number of configuration settings.
 These can be entered either manually in the user interface in [Apify Console](https://console.apify.com)
@@ -35,21 +35,21 @@ For a complete list of input fields and their types, please see the outline of t
 
 ### Start URLs
 
-The **Start URLs** (`startUrls`) field represent the initial list of URLs of pages that the scraper will visit. You can either enter these URLs manually or one by one.
+The **Start URLs** (`startUrls`) field represents the initial list of URLs of pages that the scraper will visit. You can either enter these URLs manually or one by one.
 
-The scraper supports adding new URLs to scrape on the fly, either using the **[Link selector](#link-selector)** and **[Glob Patterns](#glob-patterns)** options.
+The scraper supports adding new URLs to scrape on the fly, using either the **[Link selector](#link-selector)** or **[Glob patterns](#glob-patterns)** options.
 
 ### Link selector
 
 The **Link selector** (`linkSelector`) field contains a CSS selector that is used to find links to other web pages (items with `href` attributes, e.g. `<div class="my-class" href="...">`).
 
-On every page that is loaded, the scraper looks for all links matching **Link selector**, and checks that the target URL matches one of the [**Glob Patterns**](#glob-patterns). If it is a match, it then adds the URL to the request queue so that it's loaded by the scraper later on.
+On every page that is loaded, the scraper looks for all links matching **Link selector**, and checks that the target URL matches one of the [**Glob patterns**](#glob-patterns). If it is a match, it then adds the URL to the request queue so that it's loaded by the scraper later on.
 
 If **Link selector** is empty, the page links are ignored, and the scraper only loads pages specified in **[Start URLs](#start-urls)**.
 
-### Glob Patterns
+### Glob patterns
 
-The **Glob Patterns** (`globs`) field specifies which types of URLs found by **[Link selector](#link-selector)** should be added to the request queue.
+The **Glob patterns** (`globs`) field specifies which types of URLs found by **[Link selector](#link-selector)** should be added to the request queue.
 
 A glob pattern is simply a string with wildcard characters.
 
@@ -62,18 +62,18 @@ following URLs:
 
 ### Instructions and prompts for GPT
 
-This option tells GPT how to handle page content, e.g. you can send these prompts.
+This option tells GPT how to handle page content. For example, you can send the following prompts:
 
-- "Summarize this page into three sentences."
-- "Find a sentence that contains 'Apify Proxy' and return them as a list."
+- "Summarize this page in three sentences."
+- "Find a sentences that contain 'Apify Proxy' and return them as a list."
 
 You can also instruct OpenAI to answer with "skip this page" if you don't want to process all the scraped content, e.g.
 
-- "Summarize this page into three sentences. If the page is about proxies, answer with 'skip this page'.".
+- "Summarize this page in three sentences. If the page is about proxies, answer with 'skip this page'.".
 
 ### Max crawling depth
 
-Specifies how many links away from `Start URLs` the scraper will descend.
+This specifies how many links away from the `Start URLs` the scraper will descend.
 This value is a safeguard against infinite crawling depths for misconfigured scrapers.
 
 ### Max pages per run
@@ -82,19 +82,19 @@ The maximum number of pages that the scraper will open. 0 means unlimited.
 
 ### Formatted output
 
-If you want to get data in a structured format, you can define JSON schema using `Schema` input option.
-This schema will be used to format data into a structured JSON object, which will be stored in the output in jsonAnswer attribute.
+If you want to get data in a structured format, you can define JSON schema using the `Schema` input option.
+This schema will be used to format data into a structured JSON object, which will be stored in the output in the jsonAnswer attribute.
 
 ### Proxy configuration
 
-The **Proxy configuration** (`proxyConfiguration`) option enables you to set proxies
-the scraper will use that to prevent its detection by target websites.
+The **Proxy configuration** (`proxyConfiguration`) option enables you to set proxies.
+The scraper will use these to prevent its detection by target websites.
 You can use both [Apify Proxy](https://apify.com/proxy) and custom HTTP or SOCKS5 proxy servers.
 
 ## Limits
 
 The GPT model itself has a limit on the amount of content it can handle (i.e. maximum token limit). The scraped content will be truncated when this limit is reached.
-If you are looking for a more experienced version where you can use more than 4096 tokens, you can check out the [Extended GPT Scraper](https://apify.com/drobnikj/extended-gpt-scraper) actor.
+If you are looking for a more powerful version that lets you use more than 4096 tokens, you can check out [Extended GPT Scraper](https://apify.com/drobnikj/extended-gpt-scraper).
 ## Tips & tricks
 
 Here are a few hidden features that you might find helpful.
@@ -103,7 +103,7 @@ Here are a few hidden features that you might find helpful.
 
 You can skip pages from the output by asking GPT to answer with `skip this page`, for example:
 
-- "Summarize this page into three sentences. If the page is about proxies, answer with 'skip this page'.".
+- "Summarize this page in three sentences. If the page is about proxies, answer with 'skip this page'.".
 
 ### Structured data answer with JSON [DEPRECATED]
 
@@ -115,7 +115,7 @@ You can instruct GPT to answer with JSON, and the scraper under the hood will pa
 
 ## Example usage
 
-Here are some example use cases that you can use as a starting point for your own GTP scraping experiments.
+Here are some example use cases that you can use as a starting point for your own GPT scraping experiments.
 
 ### Summarize a page
 
@@ -124,7 +124,7 @@ Here are some example use cases that you can use as a starting point for your ow
 
 **Instructions for GPT**:
 ```text
-Summarize this page into three sentences.
+Summarize this page in three sentences.
 ```
 
 **Results**:

@@ -59,16 +59,16 @@
         },
         "useStructureOutput": {
             "sectionCaption": "Formatted output",
-            "sectionDescription": "By default, the scraper outputs text answers for each page. If you want to get data in a structured format, you can define JSON schema. The scraper is using [function](https://platform.openai.com/docs/api-reference/chat/create#chat/create-functions), which is called for each page. The function receives the page content and returns the answer in the defined JSON format.",
+            "sectionDescription": "By default, the scraper outputs text answers for each page. If you want to get data in a structured format, you can define a JSON schema. The scraper uses [function](https://platform.openai.com/docs/api-reference/chat/create#chat/create-functions), which is called for each page. The function receives the page content and returns the answer in the defined JSON format.",
             "title": "Use JSON schema to format answer",
             "type": "boolean",
-            "description": "If true, the answer will be transform in structured format based on schema in `jsonAnswer` attribute.",
+            "description": "If true, the answer will be transformed into a structured format based on the schema in the `jsonAnswer` attribute.",
             "editor": "checkbox"
         },
         "schema": {
             "title": "Schema",
             "type": "object",
-            "description": "Defines how the output will be stored in structure format using [JSON Schema[JSON Schema](https://json-schema.org/understanding-json-schema/). Keep in mind that it uses [function](https://platform.openai.com/docs/api-reference/chat/create#chat/create-functions) so by setting the description of the fields and the correct title, you can get better results.",
+            "description": "This defines how the output will be stored in structured format using [JSON Schema[JSON Schema](https://json-schema.org/understanding-json-schema/). Keep in mind that it uses [function](https://platform.openai.com/docs/api-reference/chat/create#chat/create-functions), so by setting the description of the fields and the correct title, you can get better results.",
             "prefill": {
                 "type": "object",
                 "properties": {
