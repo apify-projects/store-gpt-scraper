@@ -3,7 +3,7 @@
 This repository contains two Actors: GPT Scraper and Extended GPT Scraper.
 
 - [Extended GPT Scraper](https://apify.com/apify/extended-gpt-scraper) is a more powerful Actor that scrapes a list of URLs and processes content using the OpenAI model.
-- [GPT Scraper](https://apify.com/apify/gpt-scraper) is a simple actor that scrapes a list of URLs and sends them to GPT-3 for processing.
+- [GPT Scraper](https://apify.com/apify/gpt-scraper) is a simple Actor that scrapes a list of URLs and sends them to GPT-3 for processing.
 
 ## Extended GPT Scraper
 

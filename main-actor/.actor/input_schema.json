@@ -38,7 +38,7 @@
         "instructions": {
             "title": "Instructions for GPT",
             "type": "string",
-            "description": "Instruct GPT how to generate text. For example: \"Summarize this page into three sentences.\"<br><br>You can instruct OpenAI to answer with \"skip this page\", which will skip the page. For example: \"Summarize this page in three sentences. If the page is about Apify Proxy, answer with 'skip this page'.\".",
+            "description": "Instruct GPT how to generate text. For example: \"Summarize this page in three sentences.\"<br><br>You can instruct OpenAI to answer with \"skip this page\", which will skip the page. For example: \"Summarize this page in three sentences. If the page is about Apify Proxy, answer with 'skip this page'.\".",
             "prefill": "Gets the post with the most points from the page and returns it as JSON in this format: \npostTitle\npostUrl\npointsCount",
             "editor": "textarea"
         },
