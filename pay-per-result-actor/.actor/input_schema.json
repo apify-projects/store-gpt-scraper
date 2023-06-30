@@ -7,7 +7,7 @@
         "startUrls": {
             "title": "Start URLs",
             "type": "array",
-            "description": "A static list of URLs to scrape. <br><br>For details, see <a href='https://apify.com/apify/web-scraper#start-urls' target='_blank' rel='noopener'>Start URLs</a> in README.",
+            "description": "A static list of URLs to scrape. <br><br>For details, see <a href='https://apify.com/drobnikj/gpt-scraper#start-urls' target='_blank' rel='noopener'>Start URLs</a> in README.",
             "prefill": [
                 { "url": "https://news.ycombinator.com/" }
             ],
@@ -24,7 +24,7 @@
         "linkSelector": {
             "title": "Link selector",
             "type": "string",
-            "description": "A CSS selector saying which links on the page (<code>&lt;a&gt;</code> elements with <code>href</code> attribute) shall be followed and added to the request queue. To filter the links added to the queue, use the <b>Pseudo-URLs</b> setting.<br><br>If <b>Link selector</b> is empty, the page links are ignored.<br><br>For details, see <a href='https://apify.com/apify/web-scraper#link-selector' target='_blank' rel='noopener'>Link selector</a> in README.",
+            "description": "A CSS selector saying which links on the page (<code>&lt;a&gt;</code> elements with <code>href</code> attribute) shall be followed and added to the request queue. To filter the links added to the queue, use the <b>Pseudo-URLs</b> setting.<br><br>If <b>Link selector</b> is empty, the page links are ignored.<br><br>For details, see <a href='https://apify.com/drobnikj/gpt-scraper#link-selector' target='_blank' rel='noopener'>Link selector</a> in README.",
             "editor": "textfield",
             "prefill": "a[href]"
         },
@@ -89,7 +89,7 @@
             "sectionCaption": "Proxy configuration",
             "title": "Proxy configuration",
             "type": "object",
-            "description": "Specifies proxy servers that will be used by the scraper in order to hide its origin.<br><br>For details, see <a href='https://apify.com/apify/web-scraper#proxy-configuration' target='_blank' rel='noopener'>Proxy configuration</a> in README.",
+            "description": "Specifies proxy servers that will be used by the scraper in order to hide its origin.<br><br>For details, see <a href='https://apify.com/drobnikj/gpt-scraper#proxy-configuration' target='_blank' rel='noopener'>Proxy configuration</a> in README.",
             "prefill": { "useApifyProxy": true },
             "default": { "useApifyProxy": false },
             "editor": "proxy"

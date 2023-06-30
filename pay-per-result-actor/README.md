@@ -33,11 +33,12 @@ These can be entered either manually in the user interface in [Apify Console](ht
 or programmatically in a JSON object using the [Apify API](https://apify.com/docs/api/v2#/reference/actors/run-collection/run-actor).
 For a complete list of input fields and their types, please see the outline of the Actor's [Input-schema](https://apify.com/apify/playwright-scraper/input-schema).
 
+
 ### Start URLs
 
-The **Start URLs** (`startUrls`) field represents the initial list of URLs of pages that the scraper will visit. You can either enter these URLs manually or one by one.
+The **Start URLs** (`startUrls`) field represent the initial list of URLs of pages that the scraper will visit. You can enter a group of URLs together using file upload or one by one.
 
-The scraper supports adding new URLs to scrape on the fly, using either the **[Link selector](#link-selector)** or **[Glob patterns](#glob-patterns)** options.
+The scraper supports adding new URLs to scrape on the fly, either using the **[Link selector](#link-selector)** and **[Glob patterns](#glob-patterns)** options.
 
 ### Link selector
 
