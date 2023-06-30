@@ -21,7 +21,7 @@ The cost depends on the model you are using and the length of the content you ar
 
 ### Cost of the scraping itself
 
-The cost of the scraper is the same as the cost [Web Scraper](https://apify.com/apify/web-scraper), because it uses the same browser under the hood.
+The cost of the scraper is the same as the cost of [Web Scraper](https://apify.com/apify/web-scraper), because it uses the same browser under the hood.
 You can find information about the cost on [the pricing page](https://apify.com/pricing) under the Detailed Pricing breakdown section.
 The cost estimates are based on averages and may vary depending on the complexity of the pages you scrape.
 
