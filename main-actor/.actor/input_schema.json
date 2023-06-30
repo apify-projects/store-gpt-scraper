@@ -14,7 +14,7 @@
             "editor": "requestListSources"
         },
         "globs": {
-            "title": "Glob Patterns",
+            "title": "Glob patterns",
             "type": "array",
             "description": "Glob patterns let you match links in the page that you want to enqueue. Combine them with the link selector to tell the scraper where to find links. Omitting the glob patterns will cause the scraper to enqueue all links matched by the link selector.",
             "editor": "globs",
