@@ -222,11 +222,19 @@ export const processInstructionsWithRetry = (options: ProcessInstructionsOptions
         try {
             return await processInstructions(options);
         } catch (error: any) {
+            // NOTE: OpenAI API returns 429 with insufficient_quota, user needs to buy a plan.
+            if (error?.response?.status === 429 && error.response?.data?.error?.type === 'insufficient_quota') {
+                stopTrying(error);
+            }
             if (![429, 500, 503].includes(error?.response?.status)) {
                 stopTrying(error);
             }
             // Add rate limit error to stats, the autoscaled pool will use it to scale down the pool.
             if (error?.response?.status === 429) options.apifyClient.stats.addRateLimitError(attempt);
+            log.warning(`OpenAI API error, retrying...`, {
+                error: error.response?.data?.error?.message || error.message,
+                attempt,
+            });
             throw error;
         }
     };
