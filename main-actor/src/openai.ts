@@ -96,7 +96,7 @@ export const GPT_MODEL_LIST: {[key: string]: GPTModelConfig} = {
         },
     },
     'gpt-4-32k': {
-        model: 'gpt-4',
+        model: 'gpt-4-32k',
         maxTokens: 32768,
         interface: 'chat',
         cost: {
