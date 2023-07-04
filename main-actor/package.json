@@ -1,5 +1,5 @@
 {
-	"name": "@gpt-scraper/simple",
+	"name": "@gpt-scraper/main-actor",
 	"version": "0.0.1",
 	"type": "module",
 	"description": "Simple GPT Scraper with pay per result purpose",
