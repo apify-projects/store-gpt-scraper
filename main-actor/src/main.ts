@@ -193,7 +193,6 @@ const crawler = new PlaywrightCrawler({
     },
 });
 
-await crawler.run();
 log.info('Configuration completed. Starting the scrape.');
 await crawler.run();
 log.info(`Crawler finished.`);
