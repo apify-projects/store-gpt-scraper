@@ -16,6 +16,10 @@ import {
     shortsTextByTokenLength,
 } from './processors.js';
 
+interface State {
+    pageOutputted: number;
+}
+
 // Initialize the Apify SDK
 await Actor.init();
 
@@ -68,6 +72,14 @@ const crawler = new PlaywrightCrawler({
 
     async requestHandler({ request, page, enqueueLinks }) {
         const { depth = 0 } = request.userData;
+        const state = await crawler.useState({ pageOutputted: 0 } as State);
+
+        if (state.pageOutputted >= input.maxPagesPerCrawl) {
+            log.info(`Reached max pages (${input.maxPagesPerCrawl}), skipping URL ${request.loadedUrl}.`);
+            await crawler.teardown();
+            return;
+        }
+
         log.info(`Opening ${request.url}...`);
 
         // Enqueue links
@@ -156,6 +168,11 @@ const crawler = new PlaywrightCrawler({
             return;
         }
 
+        if (state.pageOutputted >= input.maxPagesPerCrawl) {
+            log.info(`Reached max pages (${input.maxPagesPerCrawl}), skipping URL ${request.loadedUrl}.`);
+            return;
+        }
+
         log.info(`Page ${request.url} processed.`, {
             openaiUsage: openaiUsage.usage,
             usdUsage: openaiUsage.finalCostUSD,
@@ -174,6 +191,7 @@ const crawler = new PlaywrightCrawler({
                 apiCallsCount: openaiUsage.apiCallsCount,
             },
         });
+        state.pageOutputted++;
     },
 
     async failedRequestHandler({ request }, error: Error) {
@@ -193,7 +211,7 @@ const crawler = new PlaywrightCrawler({
     },
 });
 
-log.info('Configuration completed. Starting the scrape.');
+log.info('Configuration completed. Starting the crawl.');
 await crawler.run();
 log.info(`Crawler finished.`);
 
