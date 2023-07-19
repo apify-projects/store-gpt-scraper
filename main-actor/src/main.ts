@@ -77,7 +77,7 @@ const crawler = new PlaywrightCrawler({
         const { depth = 0 } = request.userData;
         const state = await crawler.useState({ pageOutputted: 0 } as State);
 
-        if (state.pageOutputted >= input.maxPagesPerCrawl) {
+        if (input.maxPagesPerCrawl && state.pageOutputted >= input.maxPagesPerCrawl) {
             log.info(`Reached max pages per run (${input.maxPagesPerCrawl}), skipping URL ${request.loadedUrl}.`);
             return;
         }
@@ -170,7 +170,7 @@ const crawler = new PlaywrightCrawler({
             return;
         }
 
-        if (state.pageOutputted >= input.maxPagesPerCrawl) {
+        if (input.maxPagesPerCrawl && state.pageOutputted >= input.maxPagesPerCrawl) {
             log.info(`Reached max pages per run (${input.maxPagesPerCrawl}), skipping URL ${request.loadedUrl}.`);
             return;
         }
