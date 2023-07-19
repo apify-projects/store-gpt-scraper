@@ -1,7 +1,9 @@
 import { Actor } from 'apify';
 import { PlaywrightCrawler, Dataset, log, RequestList } from 'crawlee';
 import { createRequestDebugInfo } from '@crawlee/utils';
-import Ajv, { AnySchema } from 'ajv';
+import { AnySchema } from 'ajv';
+import Ajv2020 from 'ajv/dist/2020.js';
+import addFormats from 'ajv-formats';
 import { Input } from './input.js';
 import {
     processInstructionsWithRetry,
@@ -40,7 +42,8 @@ if (useStructureOutput) {
     }
     schema = uncheckJsonSchema;
     try {
-        const validator = new Ajv();
+        const validator = new Ajv2020();
+        addFormats(validator);
         validator.compile(schema);
     } catch (e: any) {
         throw new Error(`Schema is not valid: ${e.message}`);
@@ -75,7 +78,7 @@ const crawler = new PlaywrightCrawler({
         const state = await crawler.useState({ pageOutputted: 0 } as State);
 
         if (state.pageOutputted >= input.maxPagesPerCrawl) {
-            log.info(`Reached max pages (${input.maxPagesPerCrawl}), skipping URL ${request.loadedUrl}.`);
+            log.info(`Reached max pages per run (${input.maxPagesPerCrawl}), skipping URL ${request.loadedUrl}.`);
             await crawler.teardown();
             return;
         }
@@ -169,7 +172,7 @@ const crawler = new PlaywrightCrawler({
         }
 
         if (state.pageOutputted >= input.maxPagesPerCrawl) {
-            log.info(`Reached max pages (${input.maxPagesPerCrawl}), skipping URL ${request.loadedUrl}.`);
+            log.info(`Reached max pages per run (${input.maxPagesPerCrawl}), skipping URL ${request.loadedUrl}.`);
             return;
         }
 
