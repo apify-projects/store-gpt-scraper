@@ -79,6 +79,7 @@ const crawler = new PlaywrightCrawler({
 
         if (input.maxPagesPerCrawl && state.pageOutputted >= input.maxPagesPerCrawl) {
             log.info(`Reached max pages per run (${input.maxPagesPerCrawl}), skipping URL ${request.loadedUrl}.`);
+            await Actor.exit(`Finished! Reached max pages per run (${input.maxPagesPerCrawl}).`);
             return;
         }
 
