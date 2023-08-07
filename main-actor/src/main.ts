@@ -27,7 +27,8 @@ await Actor.init();
 
 const input = await Actor.getInput() as Input;
 
-if (!input) throw new Error('INPUT cannot be empty!');
+if (!input) await Actor.fail('INPUT cannot be empty!');
+
 // @ts-ignore
 const openai = await getOpenAIClient(input.openaiApiKey);
 const modelConfig = validateGPTModel(input.model);
@@ -38,7 +39,7 @@ let schema: undefined | AnySchema;
 const { schema: uncheckJsonSchema, useStructureOutput } = input;
 if (useStructureOutput) {
     if (!uncheckJsonSchema) {
-        throw new Error('Schema is required when using structured output.');
+        await Actor.fail('Schema is required when using "Use JSON schema to format answer" option. Provide the correct JSON schema or disable this option.');
     }
     schema = uncheckJsonSchema;
     try {
@@ -46,7 +47,8 @@ if (useStructureOutput) {
         addFormats(validator);
         validator.compile(schema);
     } catch (e: any) {
-        throw new Error(`Schema is not valid: ${e.message}`);
+        log.error(`Schema is not valid: ${e.message}`, { error: e });
+        await Actor.fail('Schema is not valid. Go to Actor run log, where you can find error details or disable "Use JSON schema to format answer" option.');
     }
 }
 
