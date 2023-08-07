@@ -40,15 +40,17 @@ const { schema: uncheckJsonSchema, useStructureOutput } = input;
 if (useStructureOutput) {
     if (!uncheckJsonSchema) {
         await Actor.fail('Schema is required when using "Use JSON schema to format answer" option. Provide the correct JSON schema or disable this option.');
-    }
-    schema = uncheckJsonSchema;
-    try {
-        const validator = new Ajv2020();
-        addFormats(validator);
-        validator.compile(schema);
-    } catch (e: any) {
-        log.error(`Schema is not valid: ${e.message}`, { error: e });
-        await Actor.fail('Schema is not valid. Go to Actor run log, where you can find error details or disable "Use JSON schema to format answer" option.');
+    } else {
+        schema = uncheckJsonSchema;
+        try {
+            const validator = new Ajv2020();
+            addFormats(validator);
+            validator.compile(schema);
+        } catch (e: any) {
+            log.error(`Schema is not valid: ${e.message}`, { error: e });
+            await Actor.fail('Schema is not valid. Go to Actor run log, '
+                + 'where you can find error details or disable "Use JSON schema to format answer" option.');
+        }
     }
 }
 
