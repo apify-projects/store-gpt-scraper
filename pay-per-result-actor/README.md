@@ -83,7 +83,7 @@ The maximum number of pages that the scraper will open. 0 means unlimited.
 
 ### Formatted output
 
-If you want to get data in a structured format, you can define JSON schema using the `Schema` input option.
+If you want to get data in a structured format, you can define [JSON schema](https://json-schema.org/understanding-json-schema/) using the `Schema` input option and enable the **Use JSON schema to format answer** option.
 This schema will be used to format data into a structured JSON object, which will be stored in the output in the jsonAnswer attribute.
 
 ### Proxy configuration
