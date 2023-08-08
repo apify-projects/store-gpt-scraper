@@ -15,7 +15,7 @@ export interface Input {
     maxPagesPerCrawl: number;
     maxCrawlingDepth: number;
     proxyConfiguration: ProxyConfigurationOptions;
-    schema?: AnySchema;
+    schema?: AnySchema | undefined;
     useStructureOutput?: boolean;
 }
 
