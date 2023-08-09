@@ -54,7 +54,7 @@ COPY packages packages/
 
 # Copy built JS files from the `builder` stage
 COPY --from=builder "/app/${ACTOR_PATH_IN_DOCKER_CONTEXT}/dist" "${ACTOR_PATH_IN_DOCKER_CONTEXT}/dist"
-COPY --from=builder /app/packages/gpt-scraper-core/dist
+COPY --from=builder /app/packages/gpt-scraper-core/dist packages/gpt-scraper-core/dist
 
 # Run the actor's start command when running this image
 ENV ACTOR_PATH_IN_DOCKER_CONTEXT="${ACTOR_PATH_IN_DOCKER_CONTEXT}"
