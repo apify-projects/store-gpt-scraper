@@ -1,5 +1,5 @@
 # Build the TypeScript code in a separate stage, to reduce the size of the final image.
-FROM apify/actor-node:16 AS builder
+FROM apify/actor-node-playwright-chrome:16 AS builder
 ARG ACTOR_PATH_IN_DOCKER_CONTEXT
 
 WORKDIR /app

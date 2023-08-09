@@ -8,7 +8,7 @@ This repository contains two Actors: GPT Scraper and Extended GPT Scraper and a 
 ## Scraper core
 
 This is package contains the core functionality for both Actors.
-The package's source code can be found under the `packages/scraper-core` directory.
+The package's source code can be found under the `packages/gpt-scraper-core` directory.
 
 ## Extended GPT Scraper
 
