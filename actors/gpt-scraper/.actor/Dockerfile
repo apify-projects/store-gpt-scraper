@@ -5,19 +5,19 @@ ARG ACTOR_PATH_IN_DOCKER_CONTEXT
 WORKDIR /app
 
 # Copy root package*.json
-COPY package*.json ./
+COPY --chown=myuser package*.json ./
 
 # Copy package.jsons of all used workspace members
-COPY "${ACTOR_PATH_IN_DOCKER_CONTEXT}/package*.json" "${ACTOR_PATH_IN_DOCKER_CONTEXT}/"
-COPY packages/gpt-scraper-core/package*.json packages/gpt-scraper-core/
+COPY --chown=myuser "${ACTOR_PATH_IN_DOCKER_CONTEXT}/package*.json" "${ACTOR_PATH_IN_DOCKER_CONTEXT}/"
+COPY --chown=myuser packages/gpt-scraper-core/package*.json packages/gpt-scraper-core/
 
 # Install all dependencies. Don't audit to speed up the installation.
 RUN npm install --include=dev --audit=false
 
 # Next, copy the rest of the source files.
-COPY "${ACTOR_PATH_IN_DOCKER_CONTEXT}" "./${ACTOR_PATH_IN_DOCKER_CONTEXT}"
-COPY packages packages/
-COPY tsconfig.build.json ./
+COPY --chown=myuser "${ACTOR_PATH_IN_DOCKER_CONTEXT}" "./${ACTOR_PATH_IN_DOCKER_CONTEXT}"
+COPY --chown=myuser packages packages/
+COPY --chown=myuser tsconfig.build.json ./
 
 # Build the TypeScript libraries
 RUN npm run -w "${ACTOR_PATH_IN_DOCKER_CONTEXT}" build
@@ -29,11 +29,11 @@ FROM apify/actor-node:16
 ARG ACTOR_PATH_IN_DOCKER_CONTEXT
 
 # Copy root package*.json
-COPY package*.json ./
+COPY --chown=myuser package*.json ./
 
 # Copy package.jsons of all workspace members
-COPY "${ACTOR_PATH_IN_DOCKER_CONTEXT}/package*.json" "${ACTOR_PATH_IN_DOCKER_CONTEXT}/"
-COPY packages/gpt-scraper-core/package*.json packages/gpt-scraper-core/
+COPY --chown=myuser "${ACTOR_PATH_IN_DOCKER_CONTEXT}/package*.json" "${ACTOR_PATH_IN_DOCKER_CONTEXT}/"
+COPY --chown=myuser packages/gpt-scraper-core/package*.json packages/gpt-scraper-core/
 
 # Install NPM packages, skip optional and development dependencies to
 # keep the image small. Avoid logging too much and print the dependency
@@ -49,8 +49,8 @@ RUN npm --quiet set progress=false \
     && rm -r ~/.npm
 
 # Copy the rest of the source files.
-COPY "${ACTOR_PATH_IN_DOCKER_CONTEXT}" "./${ACTOR_PATH_IN_DOCKER_CONTEXT}"
-COPY packages packages/
+COPY --chown=myuser "${ACTOR_PATH_IN_DOCKER_CONTEXT}" "./${ACTOR_PATH_IN_DOCKER_CONTEXT}"
+COPY --chown=myuser packages packages/
 
 # Copy built JS files from the `builder` stage
 COPY --from=builder "/app/${ACTOR_PATH_IN_DOCKER_CONTEXT}/dist" "${ACTOR_PATH_IN_DOCKER_CONTEXT}/dist"
