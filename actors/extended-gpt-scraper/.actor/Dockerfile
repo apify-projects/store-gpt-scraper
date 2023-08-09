@@ -23,7 +23,7 @@ RUN npm run -w "${ACTOR_PATH_IN_DOCKER_CONTEXT}" build
 
 
 # Create the final image, only with compiled code and production dependencies.
-FROM apify/actor-node:16
+FROM apify/actor-node-playwright-chrome:16
 ARG ACTOR_PATH_IN_DOCKER_CONTEXT
 
 # Copy root package*.json
