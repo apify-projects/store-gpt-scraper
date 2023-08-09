@@ -9,8 +9,7 @@ COPY package*.json ./
 
 # Copy package.jsons of all used workspace members
 COPY "${ACTOR_PATH_IN_DOCKER_CONTEXT}/package*.json" "${ACTOR_PATH_IN_DOCKER_CONTEXT}/"
-COPY packages/javascript-utils/package*.json packages/javascript-utils/
-COPY packages/typescript-utils/package*.json packages/typescript-utils/
+COPY packages/gpt-scraper-core/package*.json packages/gpt-scraper-core/
 
 # Install all dependencies. Don't audit to speed up the installation.
 RUN npm install --include=dev --audit=false
@@ -34,8 +33,7 @@ COPY package*.json ./
 
 # Copy package.jsons of all workspace members
 COPY "${ACTOR_PATH_IN_DOCKER_CONTEXT}/package*.json" "${ACTOR_PATH_IN_DOCKER_CONTEXT}/"
-COPY packages/javascript-utils/package*.json packages/javascript-utils/
-COPY packages/typescript-utils/package*.json packages/typescript-utils/
+COPY packages/gpt-scraper-core/package*.json packages/gpt-scraper-core/
 
 # Install NPM packages, skip optional and development dependencies to
 # keep the image small. Avoid logging too much and print the dependency
@@ -56,7 +54,7 @@ COPY packages packages/
 
 # Copy built JS files from the `builder` stage
 COPY --from=builder "/app/${ACTOR_PATH_IN_DOCKER_CONTEXT}/dist" "${ACTOR_PATH_IN_DOCKER_CONTEXT}/dist"
-COPY --from=builder /app/packages/typescript-utils/dist packages/typescript-utils/dist
+COPY --from=builder /app/packages/gpt-scraper-core/dist
 
 # Run the actor's start command when running this image
 ENV ACTOR_PATH_IN_DOCKER_CONTEXT="${ACTOR_PATH_IN_DOCKER_CONTEXT}"

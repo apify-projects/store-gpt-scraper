@@ -11,7 +11,7 @@
         ]
     },
     "references": [
-        { "path": "../../packages/typescript-utils/tsconfig.build.json" }
+        { "path": "../../packages/gpt-scraper-core/tsconfig.build.json" }
     ],
     "include": [
         "src/**/*",
