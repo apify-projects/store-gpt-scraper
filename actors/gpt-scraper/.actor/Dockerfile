@@ -2,8 +2,6 @@
 FROM apify/actor-node-playwright-chrome:16 AS builder
 ARG ACTOR_PATH_IN_DOCKER_CONTEXT
 
-WORKDIR /app
-
 # Copy root package*.json
 COPY --chown=myuser package*.json ./
 
@@ -53,8 +51,8 @@ COPY --chown=myuser "${ACTOR_PATH_IN_DOCKER_CONTEXT}" "./${ACTOR_PATH_IN_DOCKER_
 COPY --chown=myuser packages packages/
 
 # Copy built JS files from the `builder` stage
-COPY --from=builder "/app/${ACTOR_PATH_IN_DOCKER_CONTEXT}/dist" "${ACTOR_PATH_IN_DOCKER_CONTEXT}/dist"
-COPY --from=builder /app/packages/gpt-scraper-core/dist packages/gpt-scraper-core/dist
+COPY --from=builder "/${ACTOR_PATH_IN_DOCKER_CONTEXT}/dist" "${ACTOR_PATH_IN_DOCKER_CONTEXT}/dist"
+COPY --from=builder /packages/gpt-scraper-core/dist packages/gpt-scraper-core/dist
 
 # Run the actor's start command when running this image
 ENV ACTOR_PATH_IN_DOCKER_CONTEXT="${ACTOR_PATH_IN_DOCKER_CONTEXT}"
