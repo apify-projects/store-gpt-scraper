@@ -20,8 +20,6 @@ COPY --chown=myuser tsconfig.build.json ./
 # Build the TypeScript libraries
 RUN npm run -w "${ACTOR_PATH_IN_DOCKER_CONTEXT}" build
 
-
-
 # Create the final image, only with compiled code and production dependencies.
 FROM apify/actor-node-playwright-chrome:16
 ARG ACTOR_PATH_IN_DOCKER_CONTEXT
@@ -51,8 +49,8 @@ COPY --chown=myuser "${ACTOR_PATH_IN_DOCKER_CONTEXT}" "./${ACTOR_PATH_IN_DOCKER_
 COPY --chown=myuser packages packages/
 
 # Copy built JS files from the `builder` stage
-COPY --from=builder "/${ACTOR_PATH_IN_DOCKER_CONTEXT}/dist" "${ACTOR_PATH_IN_DOCKER_CONTEXT}/dist"
-COPY --from=builder /packages/gpt-scraper-core/dist packages/gpt-scraper-core/dist
+COPY --chown=myuse --from=builder "/${ACTOR_PATH_IN_DOCKER_CONTEXT}/dist" "${ACTOR_PATH_IN_DOCKER_CONTEXT}/dist"
+COPY --chown=myuse --from=builder /packages/gpt-scraper-core/dist packages/gpt-scraper-core/dist
 
 # Run the actor's start command when running this image
 ENV ACTOR_PATH_IN_DOCKER_CONTEXT="${ACTOR_PATH_IN_DOCKER_CONTEXT}"
