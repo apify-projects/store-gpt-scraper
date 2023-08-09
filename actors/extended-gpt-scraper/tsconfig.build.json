@@ -1,0 +1,20 @@
+{
+    "extends": "../../tsconfig.build.json",
+    "compilerOptions": {
+        "composite": true,
+        "rootDir": "./src",
+        "outDir": "./dist",
+        "tsBuildInfoFile": "./dist/.tsbuildinfo",
+        "typeRoots": [
+            "./types",
+            "./node_modules/@types"
+        ]
+    },
+    "references": [
+        { "path": "../../packages/typescript-utils/tsconfig.build.json" }
+    ],
+    "include": [
+        "src/**/*",
+        "types/**/*"
+    ]
+}
