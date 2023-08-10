@@ -49,8 +49,8 @@ COPY --chown=myuser "${ACTOR_PATH_IN_DOCKER_CONTEXT}" "./${ACTOR_PATH_IN_DOCKER_
 COPY --chown=myuser packages packages/
 
 # Copy built JS files from the `builder` stage
-COPY --chown=myuse --from=builder "/${ACTOR_PATH_IN_DOCKER_CONTEXT}/dist" "${ACTOR_PATH_IN_DOCKER_CONTEXT}/dist"
-COPY --chown=myuse --from=builder /packages/gpt-scraper-core/dist packages/gpt-scraper-core/dist
+COPY --chown=myuse --from=builder "/home/myuser/${ACTOR_PATH_IN_DOCKER_CONTEXT}/dist" "${ACTOR_PATH_IN_DOCKER_CONTEXT}/dist"
+COPY --chown=myuse --from=builder /home/myuser/packages/gpt-scraper-core/dist packages/gpt-scraper-core/dist
 
 # Run the actor's start command when running this image
 ENV ACTOR_PATH_IN_DOCKER_CONTEXT="${ACTOR_PATH_IN_DOCKER_CONTEXT}"
