@@ -54,4 +54,4 @@ COPY --chown=myuser --from=builder /home/myuser/packages/gpt-scraper-core/dist p
 
 # Run the actor's start command when running this image
 ENV ACTOR_PATH_IN_DOCKER_CONTEXT="${ACTOR_PATH_IN_DOCKER_CONTEXT}"
-CMD npm run -w "${ACTOR_PATH_IN_DOCKER_CONTEXT}" start:prod
+CMD npm run -w "${ACTOR_PATH_IN_DOCKER_CONTEXT}" start:prod --silent
