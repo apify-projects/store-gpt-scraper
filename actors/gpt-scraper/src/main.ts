@@ -33,7 +33,7 @@ if (process.env.OPENAI_API_KEY) {
             maxPagesPerCrawl: maxRequestsPerCrawl,
             model: DEFAULT_PEY_PER_RESULT_OPENAI_MODEL,
             openaiApiKey: process.env.OPENAI_API_KEY,
-        }
+        },
     });
 
     log.info('Configuration completed. Starting the crawl.');
