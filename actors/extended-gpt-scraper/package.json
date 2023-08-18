@@ -12,6 +12,7 @@
         "lint:fix": "eslint ./src --ext .ts --fix"
     },
     "dependencies": {
+        "apify": "^3.0.0",
         "@crawlee/core": "^3.3.0",
         "ajv": "^8.12.0",
         "ajv-formats": "^2.1.1",
