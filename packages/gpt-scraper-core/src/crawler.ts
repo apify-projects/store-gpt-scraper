@@ -60,33 +60,26 @@ export const createCrawler = async ({ input }: { input: Input }) => {
                 headless: true,
             },
         },
-        sessionPoolOptions: {
-            blockedStatusCodes: [401, 429],
-        },
-        // Switch of blocking of resources as it breaks scraping of apify.com/store detail pages like.
-        // preNavigationHooks: [
-        //     async ({ blockRequests }) => {
-        //         // By default blocks [".css", ".jpg", ".jpeg", ".png", ".svg", ".gif", ".woff", ".pdf", ".zip"]
-        //         await blockRequests();
-        //     },
-        // ],
-        // NOTE: GPT-4 is very slow, so we need to increase the timeout
+        retryOnBlocked: true,
         requestHandlerTimeoutSecs: 3 * 60,
         proxyConfiguration: input.proxyConfiguration && await Actor.createProxyConfiguration(input.proxyConfiguration),
         maxRequestsPerCrawl: input.maxPagesPerCrawl,
         requestList,
 
-        async requestHandler({ request, page, enqueueLinks }) {
+        async requestHandler({ request, page, enqueueLinks, closeCookieModals }) {
             const { depth = 0 } = request.userData;
             const state = await crawler.useState({ pageOutputted: 0 } as State);
+            const url = request.loadedUrl || request.url;
 
             if (input.maxPagesPerCrawl && state.pageOutputted >= input.maxPagesPerCrawl) {
-                log.info(`Reached max pages per run (${input.maxPagesPerCrawl}), skipping URL ${request.loadedUrl}.`);
+                log.info(`Reached max pages per run (${input.maxPagesPerCrawl}), skipping URL ${url}.`);
                 await Actor.exit(`Finished! Reached max pages per run (${input.maxPagesPerCrawl}).`);
                 return;
             }
 
-            log.info(`Opening ${request.url}...`);
+            log.info(`Opening ${url}...`);
+
+            await closeCookieModals();
 
             // Enqueue links
             // If maxCrawlingDepth is not set or 0 the depth is infinite.
@@ -102,7 +95,7 @@ export const createCrawler = async ({ input }: { input: Input }) => {
                 const enqueuedLinks = processedRequests.filter(({ wasAlreadyPresent }) => !wasAlreadyPresent);
                 const alreadyPresentLinksCount = processedRequests.length - enqueuedLinks.length;
                 log.info(
-                    `Page ${request.url} enqueued ${enqueuedLinks.length} new URLs.`,
+                    `Page ${url} enqueued ${enqueuedLinks.length} new URLs.`,
                     { foundLinksCount: enqueuedLinks.length, enqueuedLinksCount: enqueuedLinks.length, alreadyPresentLinksCount },
                 );
             }
@@ -113,7 +106,7 @@ export const createCrawler = async ({ input }: { input: Input }) => {
                 try {
                     originalContentHtml = await page.$eval(input.targetSelector, (el) => el.innerHTML);
                 } catch (err) {
-                    log.error(`Cannot find targetSelector ${input.targetSelector} on ${request.url}, skipping this page.`, { err });
+                    log.error(`Cannot find targetSelector ${input.targetSelector} on ${url}, skipping this page.`, { err });
                     return;
                 }
             } else {
@@ -131,20 +124,20 @@ export const createCrawler = async ({ input }: { input: Input }) => {
             if (contentTokenLength > contentMaxTokens) {
                 pageContent = shortsTextByTokenLength(pageContent, contentMaxTokens);
                 log.info(
-                    `Processing page ${request.url} with truncated text using GPT instruction...`,
+                    `Processing page ${url} with truncated text using GPT instruction...`,
                     { originalContentLength: pageContent.length, contentLength: pageContent.length, contentMaxTokens },
                 );
                 log.warning(
-                    `Content was truncated for ${request.url} to match GPT maxTokens limit.`,
-                    { url: request.url, maxTokensLimit: modelConfig.maxTokens },
+                    `Content was truncated for ${url} to match GPT maxTokens limit.`,
+                    { url, maxTokensLimit: modelConfig.maxTokens },
                 );
                 log.debug(
-                    `Truncated content for ${request.url}`,
+                    `Truncated content for ${url}`,
                     { contentMaxTokens, truncatedContentLength: getNumberOfTextTokens(pageContent) },
                 );
             } else {
                 log.info(
-                    `Processing page ${request.url} with GPT instruction...`,
+                    `Processing page ${url} with GPT instruction...`,
                     { contentLength: pageContent.length, contentTokenLength },
                 );
             }
@@ -173,16 +166,16 @@ export const createCrawler = async ({ input }: { input: Input }) => {
                 || answerLowerCase.includes('skip url')
                 || answerLowerCase.includes('skip page')
             ) {
-                log.info(`Skipping page ${request.url} from output, the key word "skip this page" was found in answer.`, { answer });
+                log.info(`Skipping page ${url} from output, the key word "skip this page" was found in answer.`, { answer });
                 return;
             }
 
             if (input.maxPagesPerCrawl && state.pageOutputted >= input.maxPagesPerCrawl) {
-                log.info(`Reached max pages per run (${input.maxPagesPerCrawl}), skipping URL ${request.loadedUrl}.`);
+                log.info(`Reached max pages per run (${input.maxPagesPerCrawl}), skipping URL ${url}.`);
                 return;
             }
 
-            log.info(`Page ${request.url} processed.`, {
+            log.info(`Page ${url} processed.`, {
                 openaiUsage: openaiUsage.usage,
                 usdUsage: openaiUsage.finalCostUSD,
                 apiCallsCount: openaiUsage.apiCallsCount,
@@ -190,7 +183,7 @@ export const createCrawler = async ({ input }: { input: Input }) => {
 
             // Store the results
             await Dataset.pushData({
-                url: request.loadedUrl,
+                url,
                 answer,
                 jsonAnswer,
                 '#debug': {
@@ -205,10 +198,11 @@ export const createCrawler = async ({ input }: { input: Input }) => {
 
         async failedRequestHandler({ request }, error: Error) {
             const errorMessage = error.message || 'no error';
-            log.error(`Request ${request.url} failed and will not be retried anymore. Marking as failed.\nLast Error Message: ${errorMessage}`);
+            const url = request.loadedUrl || request.url;
+            log.error(`Request ${url} failed and will not be retried anymore. Marking as failed.\nLast Error Message: ${errorMessage}`);
             if (error.name === 'UserFacedError') {
                 await Dataset.pushData({
-                    url: request.loadedUrl,
+                    url,
                     answer: `ERROR: ${errorMessage}`,
                 });
                 return;
