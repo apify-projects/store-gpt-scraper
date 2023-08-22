@@ -14,7 +14,7 @@ import {
 } from './openai.js';
 import {
     htmlToMarkdown,
-    shortsTextByTokenLength,
+    maybeShortsTextByTokenLength,
 } from './processors.js';
 import { Input } from './input.js';
 
@@ -101,44 +101,39 @@ export const createCrawler = async ({ input }: { input: Input }) => {
             }
 
             // A function to be evaluated by Playwright within the browser context.
-            let originalContentHtml;
+            let originContentHtml;
             if (input.targetSelector) {
                 try {
-                    originalContentHtml = await page.$eval(input.targetSelector, (el) => el.innerHTML);
+                    originContentHtml = await page.$eval(input.targetSelector, (el) => el.innerHTML);
                 } catch (err) {
                     log.error(`Cannot find targetSelector ${input.targetSelector} on ${url}, skipping this page.`, { err });
                     return;
                 }
             } else {
-                originalContentHtml = await page.content();
+                originContentHtml = await page.content();
             }
-
-            let pageContent = htmlToMarkdown(originalContentHtml);
-            const contentTokenLength = getNumberOfTextTokens(pageContent);
+            const originPageContent = htmlToMarkdown(originContentHtml);
             const instructionTokenLength = getNumberOfTextTokens(input.instructions);
 
             let answer = '';
             let jsonAnswer: null | object;
             const openaiUsage = new OpenaiAPIUsage(modelConfig.model);
             const contentMaxTokens = (modelConfig.maxTokens * 0.9) - instructionTokenLength; // 10% buffer for answer
-            if (contentTokenLength > contentMaxTokens) {
-                pageContent = shortsTextByTokenLength(pageContent, contentMaxTokens);
+            const pageContent = maybeShortsTextByTokenLength(originPageContent, contentMaxTokens);
+
+            if (pageContent.length < originPageContent.length) {
                 log.info(
                     `Processing page ${url} with truncated text using GPT instruction...`,
-                    { originalContentLength: pageContent.length, contentLength: pageContent.length, contentMaxTokens },
+                    { originContentLength: originPageContent.length, contentLength: pageContent.length, contentMaxTokens },
                 );
                 log.warning(
                     `Content was truncated for ${url} to match GPT maxTokens limit.`,
                     { url, maxTokensLimit: modelConfig.maxTokens },
                 );
-                log.debug(
-                    `Truncated content for ${url}`,
-                    { contentMaxTokens, truncatedContentLength: getNumberOfTextTokens(pageContent) },
-                );
             } else {
                 log.info(
                     `Processing page ${url} with GPT instruction...`,
-                    { contentLength: pageContent.length, contentTokenLength },
+                    { contentLength: pageContent.length },
                 );
             }
 

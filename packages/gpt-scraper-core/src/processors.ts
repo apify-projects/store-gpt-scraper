@@ -54,25 +54,16 @@ const chunkText = (text:string, maxLength: number) => {
     return chunks;
 };
 
-export const chunkTextByTokenLenght = (text: string, maxTokenLength: number) => {
-    const chunks: string[] = [];
-    let chunk = '';
-    for (const textPart of chunkText(text, 100)) {
-        if (getNumberOfTextTokens(chunk) + getNumberOfTextTokens(textPart) < maxTokenLength) {
-            chunk += textPart;
-        } else {
-            chunks.push(chunk);
-            chunk = textPart;
-        }
+export const maybeShortsTextByTokenLength = (text: string, maxTokenLength: number) => {
+    // OpenAI: A helpful rule of thumb is that one token generally corresponds to ~4 characters of text for common English text.
+    if (text.length <= maxTokenLength * 4 && getNumberOfTextTokens(text) <= maxTokenLength) {
+        return text;
     }
-    chunks.push(chunk);
-    return chunks;
-};
-
-export const shortsTextByTokenLength = (text: string, maxTokenLength: number) => {
     let shortText = '';
+    let shortTextTokens = 0;
     for (const textPart of chunkText(text, 100)) {
-        if (getNumberOfTextTokens(shortText) + getNumberOfTextTokens(textPart) < maxTokenLength) {
+        shortTextTokens += getNumberOfTextTokens(textPart);
+        if (shortTextTokens <= maxTokenLength) {
             shortText += textPart;
         } else {
             break;
