@@ -13,6 +13,5 @@
     "storages": {
         "dataset": "./dataset_schema.json"
     },
-	"dockerContextDir": "../../..",
-    "minMemoryMbytes": 4096
+	"dockerContextDir": "../../.."
 }
