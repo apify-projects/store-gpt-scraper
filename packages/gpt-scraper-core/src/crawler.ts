@@ -1,5 +1,5 @@
 import { Actor } from 'apify';
-import { PlaywrightCrawler, Dataset, log, RequestList } from 'crawlee';
+import { PlaywrightCrawler, Dataset, log, RequestList, utils, KeyValueStore } from 'crawlee';
 import { createRequestDebugInfo } from '@crawlee/utils';
 import { AnySchema } from 'ajv';
 import Ajv2020 from 'ajv/dist/2020.js';
@@ -26,7 +26,7 @@ interface State {
  * Parse and validate JSON schema, if valid return it, otherwise failed actor.
  * @param schema
  */
-const validateSchemaOrFail = async (schema: AnySchema | undefined): Promise<AnySchema|undefined> => {
+const validateSchemaOrFail = async (schema: AnySchema | undefined): Promise<AnySchema | undefined> => {
     if (!schema) {
         await Actor.fail('Schema is required when using "Use JSON schema to format answer" option. Provide the correct JSON schema or disable this option.');
         return;
@@ -53,6 +53,8 @@ export const createCrawler = async ({ input }: { input: Input }) => {
     const { useStructureOutput, schema: uncheckJsonSchema } = input;
     const schema = useStructureOutput ? await validateSchemaOrFail(uncheckJsonSchema) : undefined;
 
+    const saveSnapshots = input.saveSnapshots ?? true;
+    const kvStore = await KeyValueStore.open(input.debugKVStoreName || undefined);
     const crawler = new PlaywrightCrawler({
         launchContext: {
             launchOptions: {
@@ -121,6 +123,22 @@ export const createCrawler = async ({ input }: { input: Input }) => {
             const contentMaxTokens = (modelConfig.maxTokens * 0.9) - instructionTokenLength; // 10% buffer for answer
             const pageContent = maybeShortsTextByTokenLength(originPageContent, contentMaxTokens);
 
+            let snapshotKey: string | undefined;
+            let markdownKey: string | undefined;
+            if (saveSnapshots) {
+                snapshotKey = `${request.id}-${Date.now()}`;
+                markdownKey = `${snapshotKey}-markdown`;
+                await utils.puppeteer.saveSnapshot(page, {
+                    key: snapshotKey,
+                    saveHtml: true,
+                    saveScreenshot: true,
+                    keyValueStoreName: input.debugKVStoreName || undefined,
+                });
+                await kvStore.setValue(markdownKey, pageContent, {
+                    contentType: 'text/markdown',
+                });
+            }
+
             if (pageContent.length < originPageContent.length) {
                 log.info(
                     `Processing page ${url} with truncated text using GPT instruction...`,
@@ -186,6 +204,8 @@ export const createCrawler = async ({ input }: { input: Input }) => {
                     openaiUsage: openaiUsage.usage,
                     usdUsage: openaiUsage.finalCostUSD,
                     apiCallsCount: openaiUsage.apiCallsCount,
+                    snapshotKey,
+                    markdownKey,
                 },
             });
             state.pageOutputted++;

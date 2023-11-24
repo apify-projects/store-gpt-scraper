@@ -110,6 +110,21 @@
             "prefill": { "useApifyProxy": true },
             "default": { "useApifyProxy": false },
             "editor": "proxy"
+        },
+        "saveSnapshots": {
+            "sectionCaption": "Advanced options",
+            "sectionDescription": "Options that might not necessarily directly affect the process of the actor execution: debugging/snapshotting etc",
+            "title": "Save debug snapshots",
+            "type": "boolean",
+            "description": "For debugging purposes page screenshots, html and request data may be saved to a Key Value store",
+            "editor": "checkbox",
+            "default": true
+        },
+        "debugKVStoreName": {
+            "title": "Debug Key Value store name",
+            "type": "string",
+            "description": "Name of the Key Value store where the debug data will be saved (default KVStore if omitted)",
+            "editor": "textfield",
         }
     },
     "required": ["startUrls", "instructions", "openaiApiKey", "model"]
