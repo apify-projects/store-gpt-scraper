@@ -17,6 +17,7 @@ import {
     maybeShortsTextByTokenLength,
 } from './processors.js';
 import { Input } from './input.js';
+import { OpenaiAPIError } from './errors.js';
 
 interface State {
     pageOutputted: number;
@@ -150,7 +151,11 @@ export const createCrawler = async ({ input }: { input: Input }) => {
                 jsonAnswer = answerResult.jsonAnswer;
                 openaiUsage.logApiCallUsage(answerResult.usage);
             } catch (err: any) {
-                throw rethrowOpenaiError(err);
+                const error = rethrowOpenaiError(err);
+                if (error instanceof OpenaiAPIError && error.message.includes('Invalid schema')) {
+                    request.noRetry = true;
+                }
+                throw error;
             }
 
             const answerLowerCase = answer?.toLocaleLowerCase() || '';
