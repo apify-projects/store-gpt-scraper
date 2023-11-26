@@ -1,22 +1,13 @@
-import { Actor } from 'apify';
-import { PlaywrightCrawler, Dataset, log, RequestList } from 'crawlee';
 import { createRequestDebugInfo } from '@crawlee/utils';
-import { AnySchema } from 'ajv';
-import Ajv2020 from 'ajv/dist/2020.js';
 import addFormats from 'ajv-formats';
-import {
-    processInstructionsWithRetry,
-    getNumberOfTextTokens,
-    getOpenAIClient,
-    validateGPTModel,
-    rethrowOpenaiError,
-    OpenaiAPIUsage,
-} from './openai.js';
-import {
-    htmlToMarkdown,
-    maybeShortsTextByTokenLength,
-} from './processors.js';
+import Ajv2020 from 'ajv/dist/2020.js';
+import { Actor } from 'apify';
+import { Dataset, PlaywrightCrawler, RequestList, log } from 'crawlee';
 import { Input } from './input.js';
+import { getModelByName } from './models/models.js';
+import { rethrowOpenaiError } from './models/openai.js';
+import { getNumberOfTextTokens, htmlToMarkdown, maybeShortsTextByTokenLength } from './processors.js';
+import { Schema } from './types/model.js';
 
 interface State {
     pageOutputted: number;
@@ -26,7 +17,7 @@ interface State {
  * Parse and validate JSON schema, if valid return it, otherwise failed actor.
  * @param schema
  */
-const validateSchemaOrFail = async (schema: AnySchema | undefined): Promise<AnySchema|undefined> => {
+const validateSchemaOrFail = async (schema: Schema | undefined): Promise<Schema | undefined> => {
     if (!schema) {
         await Actor.fail('Schema is required when using "Use JSON schema to format answer" option. Provide the correct JSON schema or disable this option.');
         return;
@@ -45,13 +36,18 @@ const validateSchemaOrFail = async (schema: AnySchema | undefined): Promise<AnyS
 };
 
 export const createCrawler = async ({ input }: { input: Input }) => {
-    const openai = getOpenAIClient(input.openaiApiKey);
-    const modelConfig = validateGPTModel(input.model);
+    const model = getModelByName(input.model);
+    if (!model) throw await Actor.fail(`Model ${input.model} is not supported`);
+
     const requestList = await RequestList.open('start-urls', input.startUrls);
 
     // Validate schema
     const { useStructureOutput, schema: uncheckJsonSchema } = input;
     const schema = useStructureOutput ? await validateSchemaOrFail(uncheckJsonSchema) : undefined;
+
+    if (schema && model.modelConfig.interface === 'text') {
+        log.warning(`Schema is not supported for model ${model.modelConfig.modelName}! Ignoring schema.`);
+    }
 
     const crawler = new PlaywrightCrawler({
         launchContext: {
@@ -117,8 +113,7 @@ export const createCrawler = async ({ input }: { input: Input }) => {
 
             let answer = '';
             let jsonAnswer: null | object;
-            const openaiUsage = new OpenaiAPIUsage(modelConfig.model);
-            const contentMaxTokens = (modelConfig.maxTokens * 0.9) - instructionTokenLength; // 10% buffer for answer
+            const contentMaxTokens = model.modelConfig.maxTokens * 0.9 - instructionTokenLength; // 10% buffer for answer
             const pageContent = maybeShortsTextByTokenLength(originPageContent, contentMaxTokens);
 
             if (pageContent.length < originPageContent.length) {
@@ -128,7 +123,7 @@ export const createCrawler = async ({ input }: { input: Input }) => {
                 );
                 log.warning(
                     `Content was truncated for ${url} to match GPT maxTokens limit.`,
-                    { url, maxTokensLimit: modelConfig.maxTokens },
+                    { url, maxTokensLimit: model.modelConfig.maxTokens },
                 );
             } else {
                 log.info(
@@ -138,17 +133,15 @@ export const createCrawler = async ({ input }: { input: Input }) => {
             }
 
             try {
-                const answerResult = await processInstructionsWithRetry({
+                const answerResult = await model.processInstructionsWithRetry({
                     instructions: input.instructions,
                     content: pageContent,
                     schema,
-                    openai,
-                    modelConfig,
                     apifyClient: Actor.apifyClient,
                 });
                 answer = answerResult.answer;
                 jsonAnswer = answerResult.jsonAnswer;
-                openaiUsage.logApiCallUsage(answerResult.usage);
+                model.updateApiCallUsage(answerResult.usage);
             } catch (err: any) {
                 throw rethrowOpenaiError(err);
             }
@@ -171,9 +164,9 @@ export const createCrawler = async ({ input }: { input: Input }) => {
             }
 
             log.info(`Page ${url} processed.`, {
-                openaiUsage: openaiUsage.usage,
-                usdUsage: openaiUsage.finalCostUSD,
-                apiCallsCount: openaiUsage.apiCallsCount,
+                openaiUsage: model.stats.usage,
+                usdUsage: model.stats.finalCostUSD,
+                apiCallsCount: model.stats.apiCallsCount,
             });
 
             // Store the results
@@ -182,10 +175,10 @@ export const createCrawler = async ({ input }: { input: Input }) => {
                 answer,
                 jsonAnswer,
                 '#debug': {
-                    model: modelConfig.model,
-                    openaiUsage: openaiUsage.usage,
-                    usdUsage: openaiUsage.finalCostUSD,
-                    apiCallsCount: openaiUsage.apiCallsCount,
+                    modelName: model.modelConfig.modelName,
+                    openaiUsage: model.stats.usage,
+                    usdUsage: model.stats.finalCostUSD,
+                    apiCallsCount: model.stats.apiCallsCount,
                 },
             });
             state.pageOutputted++;
