@@ -126,14 +126,14 @@ export const createCrawler = async ({ input }: { input: Input }) => {
             let snapshotKey: string | undefined;
             let sentContentKey: string | undefined;
             if (saveSnapshots) {
-                snapshotKey = `${request.id}-${Date.now()}`;
+                snapshotKey = Date.now().toString();
                 sentContentKey = `${snapshotKey}-sentContent`;
                 await utils.puppeteer.saveSnapshot(page, {
                     key: snapshotKey,
                     saveHtml: true,
                     saveScreenshot: true,
                 });
-                await kvStore.setValue(sentContentKey, pageContent, {
+                await kvStore.setValue(`${sentContentKey}.md`, pageContent, {
                     contentType: 'text/markdown',
                 });
             }
@@ -199,8 +199,8 @@ export const createCrawler = async ({ input }: { input: Input }) => {
                 answer,
                 jsonAnswer,
                 htmlSnapshotUrl: snapshotKey ? `https://api.apify.com/v2/key-value-stores/${kvStore.id}/records/${snapshotKey}.html` : undefined,
-                screenshotUrl: snapshotKey ? `https://api.apify.com/v2/key-value-stores/${kvStore.id}/records/${snapshotKey}.png` : undefined,
-                sentContentUrl: sentContentKey ? `https://api.apify.com/v2/key-value-stores/${kvStore.id}/records/${sentContentKey}` : undefined,
+                screenshotUrl: snapshotKey ? `https://api.apify.com/v2/key-value-stores/${kvStore.id}/records/${snapshotKey}.jpg` : undefined,
+                sentContentUrl: sentContentKey ? `https://api.apify.com/v2/key-value-stores/${kvStore.id}/records/${sentContentKey}.md` : undefined,
                 '#debug': {
                     model: modelConfig.model,
                     openaiUsage: openaiUsage.usage,
