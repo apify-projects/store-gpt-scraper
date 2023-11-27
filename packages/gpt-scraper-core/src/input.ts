@@ -17,6 +17,11 @@ export interface Input {
     proxyConfiguration: ProxyConfigurationOptions;
     schema?: AnySchema | undefined;
     useStructureOutput?: boolean;
+    pageFormatInRequest?: PAGE_FORMAT;
 }
 
 export const HTML_TAGS_TO_IGNORE = ['script', 'style', 'noscript'];
+export enum PAGE_FORMAT {
+    HTML = 'HTML',
+    MARKDOWN = 'Markdown',
+}

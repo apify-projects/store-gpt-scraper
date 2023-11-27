@@ -15,8 +15,9 @@ import {
 import {
     htmlToMarkdown,
     maybeShortsTextByTokenLength,
+    shrinkHtml,
 } from './processors.js';
-import { Input } from './input.js';
+import { Input, PAGE_FORMAT } from './input.js';
 
 interface State {
     pageOutputted: number;
@@ -53,6 +54,7 @@ export const createCrawler = async ({ input }: { input: Input }) => {
     const { useStructureOutput, schema: uncheckJsonSchema } = input;
     const schema = useStructureOutput ? await validateSchemaOrFail(uncheckJsonSchema) : undefined;
 
+    const pageFormat = input.pageFormatInRequest || PAGE_FORMAT.MARKDOWN;
     const crawler = new PlaywrightCrawler({
         launchContext: {
             launchOptions: {
@@ -112,7 +114,9 @@ export const createCrawler = async ({ input }: { input: Input }) => {
             } else {
                 originContentHtml = await page.content();
             }
-            const originPageContent = htmlToMarkdown(originContentHtml);
+
+            const originPageContent = pageFormat === PAGE_FORMAT.MARKDOWN ? htmlToMarkdown(originContentHtml) : await shrinkHtml(originContentHtml, page);
+
             const instructionTokenLength = getNumberOfTextTokens(input.instructions);
 
             let answer = '';
