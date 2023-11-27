@@ -18,7 +18,6 @@ export interface Input {
     schema?: AnySchema | undefined;
     useStructureOutput?: boolean;
     saveSnapshots?: boolean;
-    debugKVStoreName?: string;
 }
 
 export const HTML_TAGS_TO_IGNORE = ['script', 'style', 'noscript'];

@@ -54,7 +54,7 @@ export const createCrawler = async ({ input }: { input: Input }) => {
     const schema = useStructureOutput ? await validateSchemaOrFail(uncheckJsonSchema) : undefined;
 
     const saveSnapshots = input.saveSnapshots ?? true;
-    const kvStore = await KeyValueStore.open(input.debugKVStoreName || undefined);
+    const kvStore = await KeyValueStore.open();
     const crawler = new PlaywrightCrawler({
         launchContext: {
             launchOptions: {
@@ -124,17 +124,16 @@ export const createCrawler = async ({ input }: { input: Input }) => {
             const pageContent = maybeShortsTextByTokenLength(originPageContent, contentMaxTokens);
 
             let snapshotKey: string | undefined;
-            let markdownKey: string | undefined;
+            let sentContentKey: string | undefined;
             if (saveSnapshots) {
                 snapshotKey = `${request.id}-${Date.now()}`;
-                markdownKey = `${snapshotKey}-markdown`;
+                sentContentKey = `${snapshotKey}-sentContent`;
                 await utils.puppeteer.saveSnapshot(page, {
                     key: snapshotKey,
                     saveHtml: true,
                     saveScreenshot: true,
-                    keyValueStoreName: input.debugKVStoreName || undefined,
                 });
-                await kvStore.setValue(markdownKey, pageContent, {
+                await kvStore.setValue(sentContentKey, pageContent, {
                     contentType: 'text/markdown',
                 });
             }
@@ -199,13 +198,14 @@ export const createCrawler = async ({ input }: { input: Input }) => {
                 url,
                 answer,
                 jsonAnswer,
+                htmlSnapshotUrl: snapshotKey ? `https://api.apify.com/v2/key-value-stores/${kvStore.id}/records/${snapshotKey}.html` : undefined,
+                screenshotUrl: snapshotKey ? `https://api.apify.com/v2/key-value-stores/${kvStore.id}/records/${snapshotKey}.png` : undefined,
+                sentContentUrl: sentContentKey ? `https://api.apify.com/v2/key-value-stores/${kvStore.id}/records/${sentContentKey}` : undefined,
                 '#debug': {
                     model: modelConfig.model,
                     openaiUsage: openaiUsage.usage,
                     usdUsage: openaiUsage.finalCostUSD,
                     apiCallsCount: openaiUsage.apiCallsCount,
-                    snapshotKey,
-                    markdownKey,
                 },
             });
             state.pageOutputted++;

@@ -103,7 +103,7 @@
             "editor": "json"
         },
         "proxyConfiguration": {
-            "sectionCaption": "Proxy configuration",
+            "sectionCaption": "Advanced configuration",
             "title": "Proxy configuration",
             "type": "object",
             "description": "This specifies the proxy servers that will be used by the scraper in order to hide its origin.<br><br>For details, see <a href='https://apify.com/drobnikj/extended-gpt-scraper#proxy-configuration' target='_blank' rel='noopener'>Proxy configuration</a> in README.",
@@ -112,19 +112,11 @@
             "editor": "proxy"
         },
         "saveSnapshots": {
-            "sectionCaption": "Advanced options",
-            "sectionDescription": "Options that might not necessarily directly affect the process of the actor execution: debugging/snapshotting etc",
             "title": "Save debug snapshots",
             "type": "boolean",
-            "description": "For debugging purposes page screenshots, html and request data may be saved to a Key Value store",
+            "description": "For each page store its HTML, screenshot and markdown as it was sent to ChatGPT adding links to these into the output",
             "editor": "checkbox",
             "default": true
-        },
-        "debugKVStoreName": {
-            "title": "Debug Key Value store name",
-            "type": "string",
-            "description": "Name of the Key Value store where the debug data will be saved (default KVStore if omitted)",
-            "editor": "textfield",
         }
     },
     "required": ["startUrls", "instructions", "openaiApiKey", "model"]
