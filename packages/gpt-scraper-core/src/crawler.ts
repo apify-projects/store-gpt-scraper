@@ -1,13 +1,14 @@
-import { createRequestDebugInfo } from '@crawlee/utils';
-import addFormats from 'ajv-formats';
-import Ajv2020 from 'ajv/dist/2020.js';
 import { Actor } from 'apify';
-import { Dataset, PlaywrightCrawler, RequestList, log } from 'crawlee';
-import { Input } from './input.js';
+import { PlaywrightCrawler, Dataset, log, RequestList, utils, KeyValueStore } from 'crawlee';
+import { createRequestDebugInfo } from '@crawlee/utils';
+import Ajv2020 from 'ajv/dist/2020.js';
+import addFormats from 'ajv-formats';
 import { getModelByName } from './models/models.js';
-import { rethrowOpenaiError } from './models/openai.js';
+import { tryWrapInOpenaiError } from './models/openai.js';
 import { getNumberOfTextTokens, htmlToMarkdown, maybeShortsTextByTokenLength } from './processors.js';
 import { Schema } from './types/model.js';
+import { Input } from './input.js';
+import { OpenaiAPIError } from './errors.js';
 
 interface State {
     pageOutputted: number;
@@ -49,6 +50,8 @@ export const createCrawler = async ({ input }: { input: Input }) => {
         log.warning(`Schema is not supported for model ${model.modelConfig.modelName}! Ignoring schema.`);
     }
 
+    const saveSnapshots = input.saveSnapshots ?? true;
+    const kvStore = await KeyValueStore.open();
     const crawler = new PlaywrightCrawler({
         launchContext: {
             launchOptions: {
@@ -116,6 +119,21 @@ export const createCrawler = async ({ input }: { input: Input }) => {
             const contentMaxTokens = model.modelConfig.maxTokens * 0.9 - instructionTokenLength; // 10% buffer for answer
             const pageContent = maybeShortsTextByTokenLength(originPageContent, contentMaxTokens);
 
+            let snapshotKey: string | undefined;
+            let sentContentKey: string | undefined;
+            if (saveSnapshots) {
+                snapshotKey = Date.now().toString();
+                sentContentKey = `${snapshotKey}-sentContent`;
+                await utils.puppeteer.saveSnapshot(page, {
+                    key: snapshotKey,
+                    saveHtml: true,
+                    saveScreenshot: true,
+                });
+                await kvStore.setValue(`${sentContentKey}.md`, pageContent, {
+                    contentType: 'text/markdown',
+                });
+            }
+
             if (pageContent.length < originPageContent.length) {
                 log.info(
                     `Processing page ${url} with truncated text using GPT instruction...`,
@@ -143,7 +161,13 @@ export const createCrawler = async ({ input }: { input: Input }) => {
                 jsonAnswer = answerResult.jsonAnswer;
                 model.updateApiCallUsage(answerResult.usage);
             } catch (err: any) {
-                throw rethrowOpenaiError(err);
+                const error = tryWrapInOpenaiError(err);
+                if (error instanceof OpenaiAPIError && error.message.includes('Invalid schema')) {
+                    // TODO: find a way to validate schema before running the actor
+                    // see #12
+                    throw await Actor.fail(error.message);
+                }
+                throw error;
             }
 
             const answerLowerCase = answer?.toLocaleLowerCase() || '';
@@ -174,6 +198,9 @@ export const createCrawler = async ({ input }: { input: Input }) => {
                 url,
                 answer,
                 jsonAnswer,
+                htmlSnapshotUrl: snapshotKey ? `https://api.apify.com/v2/key-value-stores/${kvStore.id}/records/${snapshotKey}.html` : undefined,
+                screenshotUrl: snapshotKey ? `https://api.apify.com/v2/key-value-stores/${kvStore.id}/records/${snapshotKey}.jpg` : undefined,
+                sentContentUrl: sentContentKey ? `https://api.apify.com/v2/key-value-stores/${kvStore.id}/records/${sentContentKey}.md` : undefined,
                 '#debug': {
                     modelName: model.modelConfig.modelName,
                     openaiUsage: model.stats.usage,

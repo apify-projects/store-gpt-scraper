@@ -15,4 +15,5 @@ export interface Input {
     proxyConfiguration: ProxyConfigurationOptions;
     schema?: Schema;
     useStructureOutput?: boolean;
+    saveSnapshots?: boolean;
 }

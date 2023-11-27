@@ -17,6 +17,7 @@ export interface Input {
     proxyConfiguration: ProxyConfigurationOptions;
     schema?: Schema | undefined;
     useStructureOutput?: boolean;
+    saveSnapshots?: boolean;
 }
 
 export const HTML_TAGS_TO_IGNORE = ['script', 'style', 'noscript'];
