@@ -1,8 +1,8 @@
 import { convert } from 'html-to-text';
+import { Page } from 'playwright';
 import { htmlToMarkdownProcessor } from './markdown.js';
 import { HTML_TAGS_TO_IGNORE } from './input.js';
 import { getNumberOfTextTokens } from './openai.js';
-import { Page } from 'playwright';
 
 const JSON_REGEX = /\{(?:[^{}]|())*\}/;
 
