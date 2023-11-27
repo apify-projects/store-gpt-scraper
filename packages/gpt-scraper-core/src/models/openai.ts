@@ -6,6 +6,7 @@ import { LLMResult } from 'langchain/schema';
 import { OpenaiAPIError } from '../errors.js';
 import { tryToParseJsonFromString } from '../processors.js';
 import { ProcessInstructionsOptions } from '../types/model.js';
+import { OpenAIModelSettings } from '../types/models.js';
 import { GeneralModelHandler } from './model.js';
 
 // TODO: refactor: make this error modular with other non-OpenAI models
@@ -16,13 +17,14 @@ export const tryWrapInOpenaiError = (error: any) => {
     return error;
 };
 
-export class OpenAIModelHandler extends GeneralModelHandler {
-    async processInstructions(options: ProcessInstructionsOptions) {
-        const { instructions, content, schema } = options;
+export class OpenAIModelHandler extends GeneralModelHandler<OpenAIModelSettings> {
+    async processInstructions(options: ProcessInstructionsOptions<OpenAIModelSettings>) {
+        const { instructions, content, schema, modelSettings } = options;
         log.debug(`Calling Openai API with model ${this.modelConfig.modelName}`);
 
         const handleLLMEndCallback = this.handleLLMEndCallbackHandler();
         const modelOptions = {
+            ...modelSettings,
             modelName: this.modelConfig.modelName,
             callbacks: [{ handleLLMEnd: handleLLMEndCallback.handleLLMEnd }],
         };
@@ -52,7 +54,7 @@ export class OpenAIModelHandler extends GeneralModelHandler {
      *
      * // TODO: refactor: perhaps we can achieve this with only crawlee?
      */
-    processInstructionsWithRetry = (options: ProcessInstructionsOptions) => {
+    processInstructionsWithRetry = (options: ProcessInstructionsOptions<OpenAIModelSettings>) => {
         const process: RetryFunction<any> = async (stopTrying: (e: Error) => void, attempt: number) => {
             try {
                 return await this.processInstructions(options);

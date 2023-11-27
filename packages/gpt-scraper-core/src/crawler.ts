@@ -6,9 +6,11 @@ import addFormats from 'ajv-formats';
 import { getModelByName } from './models/models.js';
 import { tryWrapInOpenaiError } from './models/openai.js';
 import { getNumberOfTextTokens, htmlToMarkdown, maybeShortsTextByTokenLength } from './processors.js';
+import { Input } from './types/input.js';
 import { Schema } from './types/model.js';
-import { Input } from './input.js';
+import { parseInput } from './input.js';
 import { OpenaiAPIError } from './errors.js';
+import { OpenAIModelSettings } from './types/models.js';
 
 interface State {
     pageOutputted: number;
@@ -37,6 +39,8 @@ const validateSchemaOrFail = async (schema: Schema | undefined): Promise<Schema 
 };
 
 export const createCrawler = async ({ input }: { input: Input }) => {
+    input = await parseInput(input);
+
     const model = getModelByName(input.model);
     if (!model) throw await Actor.fail(`Model ${input.model} is not supported`);
 
@@ -52,6 +56,14 @@ export const createCrawler = async ({ input }: { input: Input }) => {
 
     const saveSnapshots = input.saveSnapshots ?? true;
     const kvStore = await KeyValueStore.open();
+
+    const modelSettings: OpenAIModelSettings = {
+        temperature: input.temperature,
+        topP: input.topP,
+        frequencyPenalty: input.frequencyPenalty,
+        presencePenalty: input.presencePenalty,
+    };
+
     const crawler = new PlaywrightCrawler({
         launchContext: {
             launchOptions: {
@@ -155,6 +167,7 @@ export const createCrawler = async ({ input }: { input: Input }) => {
                     instructions: input.instructions,
                     content: pageContent,
                     schema,
+                    modelSettings,
                     apifyClient: Actor.apifyClient,
                 });
                 answer = answerResult.answer;

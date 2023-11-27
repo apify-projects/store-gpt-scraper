@@ -22,10 +22,11 @@ export interface Cost {
     output: number; // USD cost per 1000 tokens
 }
 
-export interface ProcessInstructionsOptions {
+export interface ProcessInstructionsOptions<ModelSettings extends object> {
     instructions: string;
     content: string;
     apifyClient: ApifyClient;
+    modelSettings: ModelSettings;
     schema?: Schema;
 }
 

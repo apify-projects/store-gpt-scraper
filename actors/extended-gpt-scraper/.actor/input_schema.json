@@ -82,6 +82,31 @@
             "description": "If true, the answer will be transformed into a structured format based on the schema in the `jsonAnswer` attribute.",
             "editor": "checkbox"
         },
+        "temperature": {
+            "sectionCaption": "GPT settings",
+            "title": "Temperature",
+            "type": "string",
+            "description": "Controls randomness: Lowering results in less random completions. As the temperature approaches zero, the model will become deterministic and repetitive. For consistent results, we recommend setting the temperature to 0.",
+            "default": "0"
+        },
+        "topP": {
+            "title": "TopP",
+            "type": "string",
+            "description": "Controls diversity via nucleus sampling: 0.5 means half of all likelihood-weighted options are considered.",
+            "default": "1"
+        },
+        "frequencyPenalty": {
+            "title": "Frequency penalty",
+            "type": "string",
+            "description": "How much to penalize new tokens based on their existing frequency in the text so far. Decreases the model's likelihood to repeat the same line verbatim.",
+            "default": "0"
+        },
+        "presencePenalty": {
+            "title": "Presence penalty",
+            "type": "string",
+            "description": "How much to penalize new tokens based on whether they appear in the text so far. Increases the model's likelihood to talk about new topics.",
+            "default": "0"
+        },
         "schema": {
             "title": "Schema",
             "type": "object",

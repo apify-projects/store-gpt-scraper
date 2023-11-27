@@ -1,10 +1,10 @@
 import { ProxyConfigurationOptions, GlobInput, RequestOptions } from '@crawlee/core';
-import { Schema } from '@packages/gpt-scraper-core';
+import { OpenAIModelSettings, Schema } from '@packages/gpt-scraper-core';
 
 /**
  * Input schema in TypeScript format.
  */
-export interface Input {
+export interface Input extends OpenAIModelSettings {
     startUrls: RequestOptions[];
     globs: GlobInput[];
     linkSelector?: string;

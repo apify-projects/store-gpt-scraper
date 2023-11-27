@@ -1,5 +1,6 @@
-import { ProxyConfigurationOptions, GlobInput, RequestOptions } from '@crawlee/core';
-import { OpenAIModelSettings, Schema } from '@packages/gpt-scraper-core';
+import { GlobInput, ProxyConfigurationOptions, RequestOptions } from 'crawlee';
+import { Schema } from './model';
+import { OpenAIModelSettings } from './models';
 
 /**
  * Input schema in TypeScript format.
@@ -15,9 +16,7 @@ export interface Input extends OpenAIModelSettings {
     maxPagesPerCrawl: number;
     maxCrawlingDepth: number;
     proxyConfiguration: ProxyConfigurationOptions;
-    schema?: Schema;
+    schema?: Schema | undefined;
     useStructureOutput?: boolean;
     saveSnapshots?: boolean;
 }
-
-export const HTML_TAGS_TO_IGNORE = ['script', 'style', 'noscript'];
