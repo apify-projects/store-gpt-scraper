@@ -119,7 +119,7 @@ export const validateGPTModel = (model: string) => {
     return modelConfig;
 };
 
-export const rethrowOpenaiError = (error: any) => {
+export const tryWrapInOpenaiError = (error: any) => {
     if (error?.response?.data?.error) {
         return new OpenaiAPIError(error.response.data.error.message || error.response.data.error.code);
     }

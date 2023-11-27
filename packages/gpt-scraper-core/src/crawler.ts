@@ -9,7 +9,7 @@ import {
     getNumberOfTextTokens,
     getOpenAIClient,
     validateGPTModel,
-    rethrowOpenaiError,
+    tryWrapInOpenaiError,
     OpenaiAPIUsage,
 } from './openai.js';
 import {
@@ -151,9 +151,11 @@ export const createCrawler = async ({ input }: { input: Input }) => {
                 jsonAnswer = answerResult.jsonAnswer;
                 openaiUsage.logApiCallUsage(answerResult.usage);
             } catch (err: any) {
-                const error = rethrowOpenaiError(err);
+                const error = tryWrapInOpenaiError(err);
                 if (error instanceof OpenaiAPIError && error.message.includes('Invalid schema')) {
-                    request.noRetry = true;
+                    // TODO: find a way to validate schema before running the actor
+                    // see #12
+                    throw await Actor.fail(error.message);
                 }
                 throw error;
             }
