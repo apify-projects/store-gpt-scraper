@@ -17,4 +17,5 @@ export interface Input {
     schema?: AnySchema;
     useStructureOutput?: boolean;
     pageFormatInRequest?: PAGE_FORMAT;
+    saveSnapshots?: boolean;
 }

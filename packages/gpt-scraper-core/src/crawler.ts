@@ -1,5 +1,5 @@
 import { Actor } from 'apify';
-import { PlaywrightCrawler, Dataset, log, RequestList } from 'crawlee';
+import { PlaywrightCrawler, Dataset, log, RequestList, utils, KeyValueStore } from 'crawlee';
 import { createRequestDebugInfo } from '@crawlee/utils';
 import { AnySchema } from 'ajv';
 import Ajv2020 from 'ajv/dist/2020.js';
@@ -9,7 +9,7 @@ import {
     getNumberOfTextTokens,
     getOpenAIClient,
     validateGPTModel,
-    rethrowOpenaiError,
+    tryWrapInOpenaiError,
     OpenaiAPIUsage,
 } from './openai.js';
 import {
@@ -18,6 +18,7 @@ import {
     shrinkHtml,
 } from './processors.js';
 import { Input, PAGE_FORMAT } from './input.js';
+import { OpenaiAPIError } from './errors.js';
 
 interface State {
     pageOutputted: number;
@@ -27,7 +28,7 @@ interface State {
  * Parse and validate JSON schema, if valid return it, otherwise failed actor.
  * @param schema
  */
-const validateSchemaOrFail = async (schema: AnySchema | undefined): Promise<AnySchema|undefined> => {
+const validateSchemaOrFail = async (schema: AnySchema | undefined): Promise<AnySchema | undefined> => {
     if (!schema) {
         await Actor.fail('Schema is required when using "Use JSON schema to format answer" option. Provide the correct JSON schema or disable this option.');
         return;
@@ -55,6 +56,8 @@ export const createCrawler = async ({ input }: { input: Input }) => {
     const schema = useStructureOutput ? await validateSchemaOrFail(uncheckJsonSchema) : undefined;
 
     const pageFormat = input.pageFormatInRequest || PAGE_FORMAT.MARKDOWN;
+    const saveSnapshots = input.saveSnapshots ?? true;
+    const kvStore = await KeyValueStore.open();
     const crawler = new PlaywrightCrawler({
         launchContext: {
             launchOptions: {
@@ -125,6 +128,22 @@ export const createCrawler = async ({ input }: { input: Input }) => {
             const contentMaxTokens = (modelConfig.maxTokens * 0.9) - instructionTokenLength; // 10% buffer for answer
             const pageContent = maybeShortsTextByTokenLength(originPageContent, contentMaxTokens);
 
+            let snapshotKey: string | undefined;
+            let sentContentKey: string | undefined;
+            if (saveSnapshots) {
+                snapshotKey = Date.now().toString();
+                sentContentKey = `${snapshotKey}-sentContent.${pageFormat === PAGE_FORMAT.MARKDOWN ? 'md' : 'html'}`;
+                await utils.puppeteer.saveSnapshot(page, {
+                    key: snapshotKey,
+                    saveHtml: true,
+                    saveScreenshot: true,
+                });
+                const content
+                await kvStore.setValue(sentContentKey, pageContent, {
+                    contentType: pageFormat === PAGE_FORMAT.MARKDOWN ? 'text/markdown' : 'text/html',
+                });
+            }
+
             if (pageContent.length < originPageContent.length) {
                 log.info(
                     `Processing page ${url} with truncated text using GPT instruction...`,
@@ -154,7 +173,13 @@ export const createCrawler = async ({ input }: { input: Input }) => {
                 jsonAnswer = answerResult.jsonAnswer;
                 openaiUsage.logApiCallUsage(answerResult.usage);
             } catch (err: any) {
-                throw rethrowOpenaiError(err);
+                const error = tryWrapInOpenaiError(err);
+                if (error instanceof OpenaiAPIError && error.message.includes('Invalid schema')) {
+                    // TODO: find a way to validate schema before running the actor
+                    // see #12
+                    throw await Actor.fail(error.message);
+                }
+                throw error;
             }
 
             const answerLowerCase = answer?.toLocaleLowerCase() || '';
@@ -185,6 +210,9 @@ export const createCrawler = async ({ input }: { input: Input }) => {
                 url,
                 answer,
                 jsonAnswer,
+                htmlSnapshotUrl: snapshotKey ? `https://api.apify.com/v2/key-value-stores/${kvStore.id}/records/${snapshotKey}.html` : undefined,
+                screenshotUrl: snapshotKey ? `https://api.apify.com/v2/key-value-stores/${kvStore.id}/records/${snapshotKey}.jpg` : undefined,
+                sentContentUrl: sentContentKey ? `https://api.apify.com/v2/key-value-stores/${kvStore.id}/records/${sentContentKey}` : undefined,
                 '#debug': {
                     model: modelConfig.model,
                     openaiUsage: openaiUsage.usage,

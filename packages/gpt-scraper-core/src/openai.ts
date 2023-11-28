@@ -119,7 +119,7 @@ export const validateGPTModel = (model: string) => {
     return modelConfig;
 };
 
-export const rethrowOpenaiError = (error: any) => {
+export const tryWrapInOpenaiError = (error: any) => {
     if (error?.response?.data?.error) {
         return new OpenaiAPIError(error.response.data.error.message || error.response.data.error.code);
     }
@@ -225,14 +225,17 @@ export const processInstructionsWithRetry = (options: ProcessInstructionsOptions
             // NOTE: OpenAI API returns 429 with insufficient_quota, user needs to buy a plan.
             if (error?.response?.status === 429 && error.response?.data?.error?.type === 'insufficient_quota') {
                 stopTrying(error);
+                return;
             }
             if (![429, 500, 503].includes(error?.response?.status)) {
                 stopTrying(error);
+                return;
             }
             // Add rate limit error to stats, the autoscaled pool will use it to scale down the pool.
             if (error?.response?.status === 429) options.apifyClient.stats.addRateLimitError(attempt);
             log.warning(`OpenAI API error, retrying...`, {
                 error: error.response?.data?.error?.message || error.message,
+                statusCode: error?.response?.status,
                 attempt,
             });
             throw error;

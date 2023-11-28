@@ -19,6 +19,7 @@ export interface Input {
     schema?: AnySchema | undefined;
     useStructureOutput?: boolean;
     pageFormatInRequest?: PAGE_FORMAT;
+    saveSnapshots?: boolean;
 }
 
 export const HTML_TAGS_TO_IGNORE = ['script', 'style', 'noscript'];
