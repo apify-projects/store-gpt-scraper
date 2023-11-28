@@ -138,7 +138,6 @@ export const createCrawler = async ({ input }: { input: Input }) => {
                     saveHtml: true,
                     saveScreenshot: true,
                 });
-                const content
                 await kvStore.setValue(sentContentKey, pageContent, {
                     contentType: pageFormat === PAGE_FORMAT.MARKDOWN ? 'text/markdown' : 'text/html',
                 });
