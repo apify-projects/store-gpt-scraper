@@ -15,8 +15,9 @@ import {
 import {
     htmlToMarkdown,
     maybeShortsTextByTokenLength,
+    shrinkHtml,
 } from './processors.js';
-import { Input } from './input.js';
+import { Input, PAGE_FORMAT } from './input.js';
 import { OpenaiAPIError } from './errors.js';
 
 interface State {
@@ -54,6 +55,7 @@ export const createCrawler = async ({ input }: { input: Input }) => {
     const { useStructureOutput, schema: uncheckJsonSchema } = input;
     const schema = useStructureOutput ? await validateSchemaOrFail(uncheckJsonSchema) : undefined;
 
+    const pageFormat = input.pageFormatInRequest || PAGE_FORMAT.MARKDOWN;
     const saveSnapshots = input.saveSnapshots ?? true;
     const kvStore = await KeyValueStore.open();
     const crawler = new PlaywrightCrawler({
@@ -115,7 +117,9 @@ export const createCrawler = async ({ input }: { input: Input }) => {
             } else {
                 originContentHtml = await page.content();
             }
-            const originPageContent = htmlToMarkdown(originContentHtml);
+
+            const originPageContent = pageFormat === PAGE_FORMAT.MARKDOWN ? htmlToMarkdown(originContentHtml) : await shrinkHtml(originContentHtml, page);
+
             const instructionTokenLength = getNumberOfTextTokens(input.instructions);
 
             let answer = '';
@@ -128,14 +132,14 @@ export const createCrawler = async ({ input }: { input: Input }) => {
             let sentContentKey: string | undefined;
             if (saveSnapshots) {
                 snapshotKey = Date.now().toString();
-                sentContentKey = `${snapshotKey}-sentContent`;
+                sentContentKey = `${snapshotKey}-sentContent.${pageFormat === PAGE_FORMAT.MARKDOWN ? 'md' : 'html'}`;
                 await utils.puppeteer.saveSnapshot(page, {
                     key: snapshotKey,
                     saveHtml: true,
                     saveScreenshot: true,
                 });
-                await kvStore.setValue(`${sentContentKey}.md`, pageContent, {
-                    contentType: 'text/markdown',
+                await kvStore.setValue(sentContentKey, pageContent, {
+                    contentType: pageFormat === PAGE_FORMAT.MARKDOWN ? 'text/markdown' : 'text/html',
                 });
             }
 
@@ -207,7 +211,7 @@ export const createCrawler = async ({ input }: { input: Input }) => {
                 jsonAnswer,
                 htmlSnapshotUrl: snapshotKey ? `https://api.apify.com/v2/key-value-stores/${kvStore.id}/records/${snapshotKey}.html` : undefined,
                 screenshotUrl: snapshotKey ? `https://api.apify.com/v2/key-value-stores/${kvStore.id}/records/${snapshotKey}.jpg` : undefined,
-                sentContentUrl: sentContentKey ? `https://api.apify.com/v2/key-value-stores/${kvStore.id}/records/${sentContentKey}.md` : undefined,
+                sentContentUrl: sentContentKey ? `https://api.apify.com/v2/key-value-stores/${kvStore.id}/records/${sentContentKey}` : undefined,
                 '#debug': {
                     model: modelConfig.model,
                     openaiUsage: openaiUsage.usage,

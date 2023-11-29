@@ -1,4 +1,5 @@
 import { convert } from 'html-to-text';
+import { Page } from 'playwright';
 import { htmlToMarkdownProcessor } from './markdown.js';
 import { HTML_TAGS_TO_IGNORE } from './input.js';
 import { getNumberOfTextTokens } from './openai.js';
@@ -24,14 +25,18 @@ export const htmlToText = (html: string) => {
  * Shrinks HTML by removing script, style and no script tags and whitespaces
  * @param html
  */
-export const shrinkHtml = (html: string) => {
-    return html
-        .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/g, '') // remove all script tags
-        .replace(/<style[\s\S]*?>[\s\S]*?<\/style>/g, '') // remove all style tags
-        .replace(/<noscript[\s\S]*?>[\s\S]*?<\/noscript>/g, '') // remove all no script tags
-        .replace(/<path[\s\S]*?>[\s\S]*?<\/path>/g, '') // remove all no script tags
-        .replace(/xlink:href="([^"]*)"/g, '') // remove all no script tags
-        .replace(/\s{2,}/g, ' ') // remove extra spaces
+export const shrinkHtml = async (html: string, page: Page) => {
+    const stripped = await page.evaluate((unstripped) => {
+        const doc = new DOMParser().parseFromString(unstripped, 'text/html');
+        for (const tag of ['script', 'style', 'noscript', 'path', 'xlink']) {
+            const elements = doc.querySelectorAll(tag);
+            for (const element of elements) {
+                element.remove();
+            }
+        }
+        return doc.documentElement.outerHTML;
+    }, html);
+    return stripped.replace(/\s{2,}/g, ' ') // remove extra spaces
         .replace(/>\s+</g, '><'); // remove all spaces between tags
 };
 
