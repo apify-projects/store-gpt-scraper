@@ -1,4 +1,5 @@
 import { Actor } from 'apify';
+import { AnySchema } from 'ajv';
 import { PlaywrightCrawler, Dataset, log, RequestList, utils, KeyValueStore } from 'crawlee';
 import { createRequestDebugInfo } from '@crawlee/utils';
 import Ajv2020 from 'ajv/dist/2020.js';
@@ -6,7 +7,6 @@ import addFormats from 'ajv-formats';
 import { getModelByName } from './models/models.js';
 import { tryWrapInOpenaiError } from './models/openai.js';
 import { getNumberOfTextTokens, htmlToMarkdown, maybeShortsTextByTokenLength } from './processors.js';
-import { Schema } from './types/model.js';
 import { Input } from './input.js';
 import { OpenaiAPIError } from './errors.js';
 
@@ -18,7 +18,7 @@ interface State {
  * Parse and validate JSON schema, if valid return it, otherwise failed actor.
  * @param schema
  */
-const validateSchemaOrFail = async (schema: Schema | undefined): Promise<Schema | undefined> => {
+const validateSchemaOrFail = async (schema: AnySchema | undefined): Promise<AnySchema | undefined> => {
     if (!schema) {
         await Actor.fail('Schema is required when using "Use JSON schema to format answer" option. Provide the correct JSON schema or disable this option.');
         return;

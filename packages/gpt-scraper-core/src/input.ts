@@ -1,5 +1,5 @@
 import { ProxyConfigurationOptions, GlobInput, RequestOptions } from '@crawlee/core';
-import { Schema } from './types/model';
+import { AnySchema } from 'ajv';
 
 /**
  * Input schema in TypeScript format.
@@ -15,7 +15,7 @@ export interface Input {
     maxPagesPerCrawl: number;
     maxCrawlingDepth: number;
     proxyConfiguration: ProxyConfigurationOptions;
-    schema?: Schema | undefined;
+    schema?: AnySchema;
     useStructureOutput?: boolean;
     saveSnapshots?: boolean;
 }

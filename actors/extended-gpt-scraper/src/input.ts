@@ -1,5 +1,5 @@
 import { ProxyConfigurationOptions, GlobInput, RequestOptions } from '@crawlee/core';
-import { Schema } from '@packages/gpt-scraper-core';
+import { AnySchema } from 'ajv';
 
 /**
  * Input schema in TypeScript format.
@@ -15,7 +15,7 @@ export interface Input {
     maxPagesPerCrawl: number;
     maxCrawlingDepth: number;
     proxyConfiguration: ProxyConfigurationOptions;
-    schema?: Schema;
+    schema?: AnySchema;
     useStructureOutput?: boolean;
     saveSnapshots?: boolean;
 }
