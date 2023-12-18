@@ -1,6 +1,11 @@
 import { ModelConfig } from '../types/model.js';
 import { OpenAIModelHandler } from './openai.js';
 
+type AllModelHandlers = typeof OpenAIModelHandler; // Add more model handlers here if needed
+
+type ModelsGroup = { [modelKey: string]: ModelConfig };
+type ModelsGroups = { [modelGroupKey: string]: { models: ModelsGroup; ModelHandler: AllModelHandlers } };
+
 /**
  * Returns the corresponding model configuration and handler for the given model name.
  * - Returns null if the model name is not found.
@@ -15,8 +20,6 @@ export const getModelByName = (modelName: string): InstanceType<AllModelHandlers
 
     return null;
 };
-
-type ModelsGroup = { [modelKey: string]: ModelConfig };
 
 /**
  * List of OpenAI models that can be used.
@@ -44,17 +47,6 @@ const OPEN_AI_MODELS: ModelsGroup = {
         cost: {
             input: 0.003,
             output: 0.004,
-        },
-    },
-    // TODO: Remove this model after June 27th, 2023
-    // https://platform.openai.com/docs/models/gpt-3-5
-    'gpt-3.5-turbo-0613': {
-        modelName: 'gpt-3.5-turbo-0613',
-        maxTokens: 4096,
-        interface: 'chat',
-        cost: {
-            input: 0.0015,
-            output: 0.002,
         },
     },
     'text-davinci-002': {
@@ -86,10 +78,6 @@ const OPEN_AI_MODELS: ModelsGroup = {
         },
     },
 } as const;
-
-type AllModelHandlers = typeof OpenAIModelHandler; // Add more model handlers here if needed
-
-type ModelsGroups = { [modelGroupKey: string]: { models: ModelsGroup; ModelHandler: AllModelHandlers } };
 
 export const MODELS_GROUPS: ModelsGroups = {
     OpenAI: { models: OPEN_AI_MODELS, ModelHandler: OpenAIModelHandler },

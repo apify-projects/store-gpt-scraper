@@ -1,4 +1,5 @@
 import { log } from 'crawlee';
+import { AnySchema } from 'ajv';
 import retry, { RetryFunction } from 'async-retry';
 import { ChatOpenAI } from 'langchain/chat_models/openai';
 import { OpenAI } from 'langchain/llms/openai';
@@ -88,13 +89,11 @@ export class OpenAIModelHandler extends GeneralModelHandler<OpenAIModelSettings>
      * Builds the model with the given schema function. Functions are a more direct way of extracting data to JSON on OpenAI.
      * - It's not guaranteed that the function will return JSON, so we need to properly parse it.
      */
-    private buildModelWithSchemaFunction = (
-        model: ChatOpenAI,
-        instructions: string,
-        schema: Record<string, unknown>,
-    ) => {
+    private buildModelWithSchemaFunction = (model: ChatOpenAI, instructions: string, schema: AnySchema) => {
+        const parameters = schema as Record<string, unknown>;
+
         return model.bind({
-            functions: [{ name: 'extract_function', description: instructions, parameters: schema }],
+            functions: [{ name: 'extract_function', description: instructions, parameters }],
             function_call: { name: 'extract_function' },
         });
     };

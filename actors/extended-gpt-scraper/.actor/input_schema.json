@@ -136,10 +136,18 @@
             "default": { "useApifyProxy": false },
             "editor": "proxy"
         },
+        "pageFormatInRequest": {
+            "title": "Page format in request",
+            "type": "string",
+            "description": "In what format to send the content extracted from the page to the GPT. Markdown will take less space allowing for larger requests, while HTML may help include some information like attributes that may otherwise be omitted.",
+            "enum": ["HTML", "Markdown"],
+            "enumTitles": ["HTML", "Markdown"],
+            "default": "Markdown"
+        },
         "saveSnapshots": {
             "title": "Save debug snapshots",
             "type": "boolean",
-            "description": "For each page store its HTML, screenshot and markdown as it was sent to ChatGPT adding links to these into the output",
+            "description": "For each page store its HTML, screenshot and parsed content (markdown/HTML as it was sent to ChatGPT) adding links to these into the output",
             "editor": "checkbox",
             "default": true
         }

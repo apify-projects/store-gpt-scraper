@@ -1,5 +1,5 @@
+import { AnySchema } from 'ajv';
 import { GlobInput, ProxyConfigurationOptions, RequestOptions } from 'crawlee';
-import { Schema } from './model';
 import { OpenAIModelSettings } from './models';
 
 /**
@@ -16,7 +16,14 @@ export interface Input extends OpenAIModelSettings {
     maxPagesPerCrawl: number;
     maxCrawlingDepth: number;
     proxyConfiguration: ProxyConfigurationOptions;
-    schema?: Schema | undefined;
+    schema?: AnySchema | undefined;
     useStructureOutput?: boolean;
+    pageFormatInRequest?: PAGE_FORMAT;
     saveSnapshots?: boolean;
+}
+
+export const HTML_TAGS_TO_IGNORE = ['script', 'style', 'noscript'];
+export enum PAGE_FORMAT {
+    HTML = 'HTML',
+    MARKDOWN = 'Markdown',
 }

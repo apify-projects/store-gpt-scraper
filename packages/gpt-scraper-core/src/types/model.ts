@@ -1,7 +1,5 @@
+import { AnySchema } from 'ajv';
 import { ApifyClient } from 'apify-client';
-
-/** Schema is used in LLM extraction functions */
-export type Schema = Record<string, unknown>;
 
 export interface ModelConfig {
     modelName: string;
@@ -27,7 +25,7 @@ export interface ProcessInstructionsOptions<ModelSettings extends object> {
     content: string;
     apifyClient: ApifyClient;
     modelSettings: ModelSettings;
-    schema?: Schema;
+    schema?: AnySchema;
 }
 
 export interface ProcessedInstructions {
