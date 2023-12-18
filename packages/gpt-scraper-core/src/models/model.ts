@@ -4,7 +4,7 @@ import { LLMResult } from 'langchain/schema';
 import { Runnable } from 'langchain/schema/runnable';
 import { ModelConfig, ModelStats, ProcessInstructionsOptions, ProcessedInstructions, Usage } from '../types/model.js';
 
-export abstract class GeneralModelHandler {
+export abstract class GeneralModelHandler<ModelSettings extends object> {
     modelConfig: ModelConfig;
     stats: ModelStats;
 
@@ -16,12 +16,14 @@ export abstract class GeneralModelHandler {
     /**
      * Processes the instructions and returns the answer, jsonAnswer and usage.
      */
-    abstract processInstructions(options: ProcessInstructionsOptions): Promise<ProcessedInstructions>;
+    abstract processInstructions(options: ProcessInstructionsOptions<ModelSettings>): Promise<ProcessedInstructions>;
 
     /**
      * Calls `processInstructions` and retries it if the API call fails.
      */
-    abstract processInstructionsWithRetry(options: ProcessInstructionsOptions): Promise<ProcessedInstructions>;
+    abstract processInstructionsWithRetry(
+        options: ProcessInstructionsOptions<ModelSettings>,
+    ): Promise<ProcessedInstructions>;
 
     /**
      * Updates the stats with the given usage.
