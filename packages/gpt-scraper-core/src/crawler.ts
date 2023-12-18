@@ -1,24 +1,16 @@
 import { Actor } from 'apify';
+import { AnySchema } from 'ajv';
 import { PlaywrightCrawler, Dataset, log, RequestList, utils, KeyValueStore } from 'crawlee';
 import { createRequestDebugInfo } from '@crawlee/utils';
-import { AnySchema } from 'ajv';
 import Ajv2020 from 'ajv/dist/2020.js';
 import addFormats from 'ajv-formats';
-import {
-    processInstructionsWithRetry,
-    getNumberOfTextTokens,
-    getOpenAIClient,
-    validateGPTModel,
-    tryWrapInOpenaiError,
-    OpenaiAPIUsage,
-} from './openai.js';
-import {
-    htmlToMarkdown,
-    maybeShortsTextByTokenLength,
-    shrinkHtml,
-} from './processors.js';
-import { Input, PAGE_FORMAT } from './input.js';
+import { getModelByName } from './models/models.js';
+import { tryWrapInOpenaiError } from './models/openai.js';
+import { getNumberOfTextTokens, htmlToMarkdown, maybeShortsTextByTokenLength, shrinkHtml } from './processors.js';
+import { Input, PAGE_FORMAT } from './types/input.js';
+import { parseInput } from './input.js';
 import { OpenaiAPIError } from './errors.js';
+import { OpenAIModelSettings } from './types/models.js';
 
 interface State {
     pageOutputted: number;
@@ -47,17 +39,32 @@ const validateSchemaOrFail = async (schema: AnySchema | undefined): Promise<AnyS
 };
 
 export const createCrawler = async ({ input }: { input: Input }) => {
-    const openai = getOpenAIClient(input.openaiApiKey);
-    const modelConfig = validateGPTModel(input.model);
+    input = await parseInput(input);
+
+    const model = getModelByName(input.model);
+    if (!model) throw await Actor.fail(`Model ${input.model} is not supported`);
+
     const requestList = await RequestList.open('start-urls', input.startUrls);
 
     // Validate schema
     const { useStructureOutput, schema: uncheckJsonSchema } = input;
     const schema = useStructureOutput ? await validateSchemaOrFail(uncheckJsonSchema) : undefined;
 
+    if (schema && model.modelConfig.interface === 'text') {
+        log.warning(`Schema is not supported for model ${model.modelConfig.modelName}! Ignoring schema.`);
+    }
+
     const pageFormat = input.pageFormatInRequest || PAGE_FORMAT.MARKDOWN;
     const saveSnapshots = input.saveSnapshots ?? true;
     const kvStore = await KeyValueStore.open();
+
+    const modelSettings: OpenAIModelSettings = {
+        temperature: input.temperature,
+        topP: input.topP,
+        frequencyPenalty: input.frequencyPenalty,
+        presencePenalty: input.presencePenalty,
+    };
+
     const crawler = new PlaywrightCrawler({
         launchContext: {
             launchOptions: {
@@ -124,8 +131,7 @@ export const createCrawler = async ({ input }: { input: Input }) => {
 
             let answer = '';
             let jsonAnswer: null | object;
-            const openaiUsage = new OpenaiAPIUsage(modelConfig.model);
-            const contentMaxTokens = (modelConfig.maxTokens * 0.9) - instructionTokenLength; // 10% buffer for answer
+            const contentMaxTokens = model.modelConfig.maxTokens * 0.9 - instructionTokenLength; // 10% buffer for answer
             const pageContent = maybeShortsTextByTokenLength(originPageContent, contentMaxTokens);
 
             let snapshotKey: string | undefined;
@@ -150,7 +156,7 @@ export const createCrawler = async ({ input }: { input: Input }) => {
                 );
                 log.warning(
                     `Content was truncated for ${url} to match GPT maxTokens limit.`,
-                    { url, maxTokensLimit: modelConfig.maxTokens },
+                    { url, maxTokensLimit: model.modelConfig.maxTokens },
                 );
             } else {
                 log.info(
@@ -160,17 +166,16 @@ export const createCrawler = async ({ input }: { input: Input }) => {
             }
 
             try {
-                const answerResult = await processInstructionsWithRetry({
+                const answerResult = await model.processInstructionsWithRetry({
                     instructions: input.instructions,
                     content: pageContent,
                     schema,
-                    openai,
-                    modelConfig,
+                    modelSettings,
                     apifyClient: Actor.apifyClient,
                 });
                 answer = answerResult.answer;
                 jsonAnswer = answerResult.jsonAnswer;
-                openaiUsage.logApiCallUsage(answerResult.usage);
+                model.updateApiCallUsage(answerResult.usage);
             } catch (err: any) {
                 const error = tryWrapInOpenaiError(err);
                 if (error instanceof OpenaiAPIError && error.message.includes('Invalid schema')) {
@@ -199,9 +204,9 @@ export const createCrawler = async ({ input }: { input: Input }) => {
             }
 
             log.info(`Page ${url} processed.`, {
-                openaiUsage: openaiUsage.usage,
-                usdUsage: openaiUsage.finalCostUSD,
-                apiCallsCount: openaiUsage.apiCallsCount,
+                openaiUsage: model.stats.usage,
+                usdUsage: model.stats.finalCostUSD,
+                apiCallsCount: model.stats.apiCallsCount,
             });
 
             // Store the results
@@ -213,10 +218,10 @@ export const createCrawler = async ({ input }: { input: Input }) => {
                 screenshotUrl: snapshotKey ? `https://api.apify.com/v2/key-value-stores/${kvStore.id}/records/${snapshotKey}.jpg` : undefined,
                 sentContentUrl: sentContentKey ? `https://api.apify.com/v2/key-value-stores/${kvStore.id}/records/${sentContentKey}` : undefined,
                 '#debug': {
-                    model: modelConfig.model,
-                    openaiUsage: openaiUsage.usage,
-                    usdUsage: openaiUsage.finalCostUSD,
-                    apiCallsCount: openaiUsage.apiCallsCount,
+                    modelName: model.modelConfig.modelName,
+                    openaiUsage: model.stats.usage,
+                    usdUsage: model.stats.finalCostUSD,
+                    apiCallsCount: model.stats.apiCallsCount,
                 },
             });
             state.pageOutputted++;

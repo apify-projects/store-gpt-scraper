@@ -1,8 +1,8 @@
+import { encode } from 'gpt-3-encoder';
 import { convert } from 'html-to-text';
 import { Page } from 'playwright';
 import { htmlToMarkdownProcessor } from './markdown.js';
 import { HTML_TAGS_TO_IGNORE } from './input.js';
-import { getNumberOfTextTokens } from './openai.js';
 
 const JSON_REGEX = /\{(?:[^{}]|())*\}/;
 
@@ -92,4 +92,9 @@ export const tryToParseJsonFromString = (str: string) => {
         }
     }
     return null;
+};
+
+export const getNumberOfTextTokens = (text: string) => {
+    const encodedText = encode(text);
+    return encodedText.length;
 };
