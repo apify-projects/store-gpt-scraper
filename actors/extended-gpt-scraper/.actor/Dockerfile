@@ -1,5 +1,5 @@
 # Build the TypeScript code in a separate stage, to reduce the size of the final image.
-FROM apify/actor-node-playwright-chrome:16 AS builder
+FROM apify/actor-node-playwright-chrome:18 AS builder
 ARG ACTOR_PATH_IN_DOCKER_CONTEXT
 
 # Copy root package*.json
@@ -21,7 +21,7 @@ COPY --chown=myuser tsconfig.build.json ./
 RUN npm run -w "${ACTOR_PATH_IN_DOCKER_CONTEXT}" build
 
 # Create the final image, only with compiled code and production dependencies.
-FROM apify/actor-node-playwright-chrome:16
+FROM apify/actor-node-playwright-chrome:18
 ARG ACTOR_PATH_IN_DOCKER_CONTEXT
 
 # Copy root package*.json
