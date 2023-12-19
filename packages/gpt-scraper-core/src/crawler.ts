@@ -59,6 +59,7 @@ export const createCrawler = async ({ input }: { input: Input }) => {
     const kvStore = await KeyValueStore.open();
 
     const modelSettings: OpenAIModelSettings = {
+        openAIApiKey: input.openaiApiKey,
         temperature: input.temperature,
         topP: input.topP,
         frequencyPenalty: input.frequencyPenalty,

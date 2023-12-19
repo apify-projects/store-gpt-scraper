@@ -36,6 +36,9 @@ if (process.env.OPENAI_API_KEY) {
         },
     });
 
+    // We explicitly remove it so we are sure the key is only passed through params to remove double source of truth
+    delete process.env.OPENAI_API_KEY;
+
     log.info('Configuration completed. Starting the crawl.');
     await crawler.run();
     log.info(`Crawler finished.`);
