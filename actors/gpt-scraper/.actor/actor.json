@@ -9,9 +9,10 @@
 	},
 	"input": "./input_schema.json",
 	"readme": "./README.md",
-	"dockerfile": "./Dockerfile",
+	"dockerfile": "../../../shared/Dockerfile",
+    "changelog":"../../../shared/CHANGELOG.md",
     "storages": {
-        "dataset": "./dataset_schema.json"
+        "dataset": "../../../shared/dataset_schema.json"
     },
 	"dockerContextDir": "../../..",
     "minMemoryMbytes": 4096
