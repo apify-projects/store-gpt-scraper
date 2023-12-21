@@ -11,3 +11,4 @@ This changelog tracks updates to both GTP Scraper and Extended GPT Scraper actor
 
 *Changes*
 - Use LangChain to connect to GPT models. This means some error messages are different.
+- The default model `temperature` is now set to `0` instead of `1`. This should improve the reliability of scraping. While this is technically a breaking change, it should mostly behave as an improvement so we don't consider need to release a separate version.
