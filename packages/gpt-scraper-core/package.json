@@ -29,6 +29,7 @@
         "html-to-text": "^9.0.5",
         "joplin-turndown-plugin-gfm": "^1.0.12",
         "langchain": "^0.0.197-rc.1",
+        "minimatch": "^9.0.3",
         "openai": "^3.3.0",
         "playwright": "*",
         "turndown": "^7.1.2"

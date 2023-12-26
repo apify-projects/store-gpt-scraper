@@ -20,6 +20,7 @@ export interface Input extends OpenAIModelSettings {
     useStructureOutput?: boolean;
     pageFormatInRequest?: PAGE_FORMAT;
     saveSnapshots?: boolean;
+    skipGptGlobs?: GlobInput[];
 }
 
 export const HTML_TAGS_TO_IGNORE = ['script', 'style', 'noscript'];

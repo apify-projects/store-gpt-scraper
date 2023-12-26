@@ -11,6 +11,7 @@ import { Input, PAGE_FORMAT } from './types/input.js';
 import { parseInput } from './input.js';
 import { OpenaiAPIError } from './errors.js';
 import { OpenAIModelSettings } from './types/models.js';
+import { doesUrlMatchGlobs } from './utils.js';
 
 interface State {
     pageOutputted: number;
@@ -111,6 +112,11 @@ export const createCrawler = async ({ input }: { input: Input }) => {
                     `Page ${url} enqueued ${enqueuedLinks.length} new URLs.`,
                     { foundLinksCount: enqueuedLinks.length, enqueuedLinksCount: enqueuedLinks.length, alreadyPresentLinksCount },
                 );
+            }
+
+            const skipGptProcessing = shouldSkipGptProcessing(url, input.skipGptGlobs);
+            if (skipGptProcessing) {
+                return log.info(`Skipping page '${url}' from GPT processing, crawling only.`);
             }
 
             // A function to be evaluated by Playwright within the browser context.
@@ -247,4 +253,10 @@ export const createCrawler = async ({ input }: { input: Input }) => {
     });
 
     return crawler;
+};
+
+const shouldSkipGptProcessing = (url: string, skipGptGlobs: Input['skipGptGlobs']): boolean => {
+    if (!skipGptGlobs) return false;
+
+    return doesUrlMatchGlobs(url, skipGptGlobs);
 };

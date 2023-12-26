@@ -27,14 +27,15 @@ if (process.env.ACTOR_MAX_PAID_DATASET_ITEMS) {
 }
 
 if (process.env.OPENAI_API_KEY) {
-    const crawler = await createCrawler({
-        input: {
-            ...input,
-            maxPagesPerCrawl: maxRequestsPerCrawl,
-            model: DEFAULT_PEY_PER_RESULT_OPENAI_MODEL,
-            openaiApiKey: process.env.OPENAI_API_KEY,
-        },
-    });
+    const adjustedPayPerResultInput = {
+        ...input,
+        maxPagesPerCrawl: maxRequestsPerCrawl,
+        skipGptGlobs: [],
+        model: DEFAULT_PEY_PER_RESULT_OPENAI_MODEL,
+        openaiApiKey: process.env.OPENAI_API_KEY,
+    };
+
+    const crawler = await createCrawler({ input: adjustedPayPerResultInput });
 
     // We explicitly remove it so we are sure the key is only passed through params to remove double source of truth
     delete process.env.OPENAI_API_KEY;
