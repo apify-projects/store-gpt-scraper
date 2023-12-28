@@ -5,11 +5,10 @@ import { createRequestDebugInfo } from '@crawlee/utils';
 import Ajv2020 from 'ajv/dist/2020.js';
 import addFormats from 'ajv-formats';
 import { getModelByName } from './models/models.js';
-import { tryWrapInOpenaiError } from './models/openai.js';
 import { getNumberOfTextTokens, htmlToMarkdown, maybeShortsTextByTokenLength, shrinkHtml } from './processors.js';
 import { Input, PAGE_FORMAT } from './types/input.js';
 import { parseInput } from './input.js';
-import { OpenaiAPIError } from './errors.js';
+import { NonRetryableOpenaiAPIError } from './errors.js';
 import { OpenAIModelSettings } from './types/models.js';
 
 interface State {
@@ -177,11 +176,8 @@ export const createCrawler = async ({ input }: { input: Input }) => {
                 answer = answerResult.answer;
                 jsonAnswer = answerResult.jsonAnswer;
                 model.updateApiCallUsage(answerResult.usage);
-            } catch (err: any) {
-                const error = tryWrapInOpenaiError(err);
-                if (error instanceof OpenaiAPIError && error.message.includes('Invalid schema')) {
-                    // TODO: find a way to validate schema before running the actor
-                    // see #12
+            } catch (error: any) {
+                if (error instanceof NonRetryableOpenaiAPIError) {
                     throw await Actor.fail(error.message);
                 }
                 throw error;

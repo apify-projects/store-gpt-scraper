@@ -4,19 +4,11 @@ import retry, { RetryFunction } from 'async-retry';
 import { ChatOpenAI } from 'langchain/chat_models/openai';
 import { OpenAI } from 'langchain/llms/openai';
 import { LLMResult } from 'langchain/schema';
-import { OpenaiAPIError } from '../errors.js';
+import { NonRetryableOpenaiAPIError, OpenaiAPIError, RateLimitedError } from '../errors.js';
 import { tryToParseJsonFromString } from '../processors.js';
 import { ProcessInstructionsOptions } from '../types/model.js';
 import { OpenAIModelSettings } from '../types/models.js';
 import { GeneralModelHandler } from './model.js';
-
-// TODO: refactor: make this error modular with other non-OpenAI models
-export const tryWrapInOpenaiError = (error: any) => {
-    if (error?.response?.data?.error) {
-        return new OpenaiAPIError(error.response.data.error.message || error.response.data.error.code);
-    }
-    return error;
-};
 
 export class OpenAIModelHandler extends GeneralModelHandler<OpenAIModelSettings> {
     async processInstructions(options: ProcessInstructionsOptions<OpenAIModelSettings>) {
@@ -60,29 +52,52 @@ export class OpenAIModelHandler extends GeneralModelHandler<OpenAIModelSettings>
             try {
                 return await this.processInstructions(options);
             } catch (error: any) {
-                // NOTE: OpenAI API returns 429 with insufficient_quota, user needs to buy a plan.
-                if (error?.response?.status === 429 && error.response?.data?.error?.type === 'insufficient_quota') {
-                    stopTrying(error);
+                const wrappedError = this.wrapInOpenaiError(error);
+
+                if (wrappedError instanceof NonRetryableOpenaiAPIError) {
+                    stopTrying(wrappedError);
                     return;
                 }
-                if (![429, 500, 503].includes(error?.response?.status)) {
-                    stopTrying(error);
-                    return;
-                }
+
                 // Add rate limit error to stats, the autoscaled pool will use it to scale down the pool.
-                if (error?.response?.status === 429) options.apifyClient.stats.addRateLimitError(attempt);
+                if (wrappedError instanceof RateLimitedError) options.apifyClient.stats.addRateLimitError(attempt);
+
                 log.warning(`OpenAI API error, retrying...`, {
-                    error: error.response?.data?.error?.message || error.message,
-                    statusCode: error?.response?.status,
+                    error: wrappedError.message,
+                    statusCode: wrappedError.statusCode,
                     attempt,
                 });
-                throw error;
+
+                throw wrappedError;
             }
         };
         return retry(process, {
             retries: 8,
             minTimeout: 500,
         });
+    };
+
+    /**
+     * Wraps the error in a custom error class. Used for the handling errors.
+     * - Langchain doesn't have a proper error type, so we need to normalize it.
+     * - The error message attribute changes depending on the error type.
+     *
+     * see OpenAI errors documentation: https://platform.openai.com/docs/guides/error-codes/api-errors
+     */
+    private wrapInOpenaiError = (error: any): OpenaiAPIError | NonRetryableOpenaiAPIError | RateLimitedError => {
+        const errorMessage = error.error?.message || error.code || error.message;
+
+        // The error structure is completely different for insufficient quota errors. We need to handle it separately.
+        if (error.name === 'InsufficientQuotaError') {
+            return new NonRetryableOpenaiAPIError(errorMessage);
+        }
+
+        const isOpenAIServerError = [500, 503].includes(error.status);
+        if (isOpenAIServerError) return new OpenaiAPIError(errorMessage, error.status);
+
+        if (error.status === 429) return new RateLimitedError(errorMessage);
+
+        return new NonRetryableOpenaiAPIError(errorMessage, error.status);
     };
 
     /**
