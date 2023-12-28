@@ -8,7 +8,7 @@ import { getModelByName } from './models/models.js';
 import { tryWrapInOpenaiError } from './models/openai.js';
 import { getNumberOfTextTokens, htmlToMarkdown, maybeShortsTextByTokenLength, shrinkHtml } from './processors.js';
 import { Input, PAGE_FORMAT } from './types/input.js';
-import { parseInput } from './input.js';
+import { parseInput, validateInput } from './input.js';
 import { OpenaiAPIError } from './errors.js';
 import { OpenAIModelSettings } from './types/models.js';
 
@@ -40,6 +40,7 @@ const validateSchemaOrFail = async (schema: AnySchema | undefined): Promise<AnyS
 
 export const createCrawler = async ({ input }: { input: Input }) => {
     input = await parseInput(input);
+    await validateInput(input);
 
     const model = getModelByName(input.model);
     if (!model) throw await Actor.fail(`Model ${input.model} is not supported`);

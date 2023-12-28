@@ -1,4 +1,5 @@
 import { Actor } from 'apify';
+import { Cookie } from 'crawlee';
 import { Input } from './types/input';
 
 export const HTML_TAGS_TO_IGNORE = ['script', 'style', 'noscript'];
@@ -29,6 +30,15 @@ export const parseInput = async (input: Input) => {
     };
 };
 
+/**
+ * Validates the Actor input. Throws an Actor fail if the input is invalid.
+ */
+export const validateInput = async (input: Input) => {
+    const { initialCookies } = input;
+
+    if (initialCookies) await validateInitialCookies(initialCookies);
+};
+
 const parseNumberInRange = async (
     property: unknown,
     propertyName: string,
@@ -56,4 +66,18 @@ const validateNumberInRange = async (property: number, propertyName: string, ran
     throw await Actor.fail(
         `INVALID INPUT: '${propertyName}' must be in range between ${range.min} and ${range.max}! Got '${property}'`,
     );
+};
+
+/**
+ * Very basic validation of the initial cookies. We can't do a full cookie validation here.
+ * - We do the full validation in `initialCookiesHook` with a browser from crawling context.
+ */
+const validateInitialCookies = async (cookies: unknown): Promise<Cookie[]> => {
+    if (!Array.isArray(cookies)) throw await Actor.fail(`INVALID INPUT: 'initialCookies' must be an array!`);
+
+    if (!cookies.every((cookie) => typeof cookie === 'object')) {
+        throw await Actor.fail(`INVALID INPUT: 'initialCookies' must be an array of Cookie objects!`);
+    }
+
+    return cookies as Cookie[];
 };

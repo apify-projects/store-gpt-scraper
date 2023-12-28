@@ -36,6 +36,14 @@
             "editor": "textfield",
             "prefill": "a[href]"
         },
+        "initialCookies": {
+            "title": "Initial cookies",
+            "type": "array",
+            "description": "Cookies that will be pre-set to all pages the scraper opens. This is useful for pages that require login. The value is expected to be a JSON array of objects with `name`, `value`, 'domain' and 'path' properties. For example: `[{\"name\": \"cookieName\", \"value\": \"cookieValue\"}, \"domain\": \".domain.com\", \"path\": \"/\"}]`.\n\nYou can use the [EditThisCookie](https://chrome.google.com/webstore/detail/editthiscookie/fngmhnnpilhplaeedifhccceomclgfbg) browser extension to copy browser cookies in this format, and paste it here.",
+            "default": [],
+            "prefill": [],
+            "editor": "json"
+        },
         "instructions": {
             "title": "Instructions for GPT",
             "type": "string",

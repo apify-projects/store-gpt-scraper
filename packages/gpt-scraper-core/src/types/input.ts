@@ -1,5 +1,5 @@
 import { AnySchema } from 'ajv';
-import { GlobInput, ProxyConfigurationOptions, RequestOptions } from 'crawlee';
+import { Cookie, GlobInput, ProxyConfigurationOptions, RequestOptions } from 'crawlee';
 import { OpenAIModelSettings } from './models';
 
 /**
@@ -21,6 +21,7 @@ export interface Input extends OpenAIModelSettings {
     useStructureOutput?: boolean;
     pageFormatInRequest?: PAGE_FORMAT;
     saveSnapshots?: boolean;
+    initialCookies?: Cookie[];
 }
 
 export const HTML_TAGS_TO_IGNORE = ['script', 'style', 'noscript'];
