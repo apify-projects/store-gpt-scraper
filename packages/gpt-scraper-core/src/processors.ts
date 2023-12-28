@@ -1,41 +1,25 @@
 import { encode } from 'gpt-3-encoder';
-import { convert } from 'html-to-text';
 import { Page } from 'playwright';
 import { htmlToMarkdownProcessor } from './markdown.js';
-import { HTML_TAGS_TO_IGNORE } from './input.js';
 
 const JSON_REGEX = /\{(?:[^{}]|())*\}/;
 
 /**
- * Converts HTML to text
+ * Shrinks HTML by removing css targeted elements and extra spaces
  * @param html
  */
-export const htmlToText = (html: string) => {
-    const options: any = {
-        wordwrap: false,
-        selectors: HTML_TAGS_TO_IGNORE.map((tag) => ({ selector: tag, format: 'skip' })),
-        // ignoreHref: true, // ignore href targets
-    };
-    const text = convert(html, options);
-    return text
-        .replace(/\n{2,}/g, '\n\n'); // remove extra new lines
-};
-
-/**
- * Shrinks HTML by removing script, style and no script tags and whitespaces
- * @param html
- */
-export const shrinkHtml = async (html: string, page: Page) => {
-    const stripped = await page.evaluate((unstripped) => {
-        const doc = new DOMParser().parseFromString(unstripped, 'text/html');
-        for (const tag of ['script', 'style', 'noscript', 'path', 'xlink']) {
-            const elements = doc.querySelectorAll(tag);
+export const shrinkHtml = async (html: string, page: Page, removeElementsCssSelector?: string) => {
+    const stripped = await page.evaluate(
+        ([unstripped, removeElementsCssSelector]) => {
+            const doc = new DOMParser().parseFromString(unstripped, 'text/html');
+            const elements = doc.querySelectorAll(removeElementsCssSelector || '');
             for (const element of elements) {
                 element.remove();
             }
-        }
-        return doc.documentElement.outerHTML;
-    }, html);
+            return doc.documentElement.outerHTML;
+        },
+        [html, removeElementsCssSelector] as const,
+    );
     return stripped.replace(/\s{2,}/g, ' ') // remove extra spaces
         .replace(/>\s+</g, '><'); // remove all spaces between tags
 };

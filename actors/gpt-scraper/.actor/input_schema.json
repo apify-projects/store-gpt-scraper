@@ -58,6 +58,14 @@
             "editor": "textfield",
             "prefill": ""
         },
+        "removeElementsCssSelector": {
+            "title": "Remove HTML elements (CSS selector)",
+            "type": "string",
+            "description": "A CSS selector matching HTML elements that will be removed from the DOM, before sending it to GPT processing. This is useful to skip irrelevant page content and save on GPT input tokens. \n\nBy default, the Actor removes usually unwanted elements like scripts, styles and inline images. You can disable the removal by setting this value to some non-existent CSS selector like `dummy_keep_everything`.",
+            "editor": "textarea",
+            "default": "script, style, noscript, path, svg, xlink",
+            "prefill": "script, style, noscript, path, svg, xlink"
+        },
         "maxCrawlingDepth": {
             "title": "Max crawling depth",
             "type": "integer",

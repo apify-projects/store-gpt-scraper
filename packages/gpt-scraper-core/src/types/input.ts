@@ -22,9 +22,9 @@ export interface Input extends OpenAIModelSettings {
     pageFormatInRequest?: PAGE_FORMAT;
     saveSnapshots?: boolean;
     initialCookies?: Cookie[];
+    removeElementsCssSelector?: string;
 }
 
-export const HTML_TAGS_TO_IGNORE = ['script', 'style', 'noscript'];
 export enum PAGE_FORMAT {
     HTML = 'HTML',
     MARKDOWN = 'Markdown',

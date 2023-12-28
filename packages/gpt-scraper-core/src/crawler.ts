@@ -8,7 +8,7 @@ import { getModelByName } from './models/models.js';
 import { tryWrapInOpenaiError } from './models/openai.js';
 import { getNumberOfTextTokens, htmlToMarkdown, maybeShortsTextByTokenLength, shrinkHtml } from './processors.js';
 import { Input, PAGE_FORMAT } from './types/input.js';
-import { parseInput, validateInput } from './input.js';
+import { parseInput, validateInput, validateInputCssSelectors } from './input.js';
 import { OpenaiAPIError } from './errors.js';
 import { OpenAIModelSettings } from './types/models.js';
 
@@ -85,6 +85,9 @@ export const createCrawler = async ({ input }: { input: Input }) => {
             const state = await crawler.useState({ pageOutputted: 0 } as State);
             const url = request.loadedUrl || request.url;
 
+            const isFirstPage = state.pageOutputted === 0;
+            if (isFirstPage) await validateInputCssSelectors(input, page);
+
             if (input.maxPagesPerCrawl && state.pageOutputted >= input.maxPagesPerCrawl) {
                 log.info(`Reached max pages per run (${input.maxPagesPerCrawl}), skipping URL ${url}.`);
                 await Actor.exit(`Finished! Reached max pages per run (${input.maxPagesPerCrawl}).`);
@@ -128,7 +131,8 @@ export const createCrawler = async ({ input }: { input: Input }) => {
                 originContentHtml = await page.content();
             }
 
-            const originPageContent = pageFormat === PAGE_FORMAT.MARKDOWN ? htmlToMarkdown(originContentHtml) : await shrinkHtml(originContentHtml, page);
+            const shrunkHtml = await shrinkHtml(originContentHtml, page, input.removeElementsCssSelector);
+            const originPageContent = pageFormat === PAGE_FORMAT.MARKDOWN ? htmlToMarkdown(shrunkHtml) : shrunkHtml;
 
             const instructionTokenLength = getNumberOfTextTokens(input.instructions);
 

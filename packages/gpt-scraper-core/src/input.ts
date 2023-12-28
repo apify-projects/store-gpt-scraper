@@ -1,5 +1,6 @@
 import { Actor } from 'apify';
 import { Cookie } from 'crawlee';
+import { Page } from 'playwright';
 import { Input } from './types/input';
 
 export const HTML_TAGS_TO_IGNORE = ['script', 'style', 'noscript'];
@@ -37,6 +38,17 @@ export const validateInput = async (input: Input) => {
     const { initialCookies } = input;
 
     if (initialCookies) await validateInitialCookies(initialCookies);
+};
+
+/**
+ * Css selectors need to be validated in the browser context. We do the validation on the first page.
+ */
+export const validateInputCssSelectors = async (input: Input, page: Page) => {
+    const { linkSelector, targetSelector, removeElementsCssSelector } = input;
+
+    await validateInputCssSelector(linkSelector, 'linkSelector', page);
+    await validateInputCssSelector(targetSelector, 'targetSelector', page);
+    await validateInputCssSelector(removeElementsCssSelector, 'removeElementsCssSelector', page);
 };
 
 const parseNumberInRange = async (
@@ -80,4 +92,14 @@ const validateInitialCookies = async (cookies: unknown): Promise<Cookie[]> => {
     }
 
     return cookies as Cookie[];
+};
+
+const validateInputCssSelector = async (selector: string | undefined | null, inputName: string, page: Page) => {
+    if (selector === undefined || selector === null) return;
+
+    try {
+        await page.$(selector);
+    } catch (e) {
+        throw await Actor.fail(`INVALID INPUT: '${inputName}' is not a valid CSS selector! Got '${selector}'`);
+    }
 };
