@@ -97,10 +97,11 @@ export const createCrawler = async ({ input }: { input: Input }) => {
             // Enqueue links
             // If maxCrawlingDepth is not set or 0 the depth is infinite.
             const isDepthLimitReached = !!input.maxCrawlingDepth && depth >= input.maxCrawlingDepth;
-            if (input.linkSelector && input?.globs?.length && !isDepthLimitReached) {
+            if (input.linkSelector && input?.includeUrlGlobs?.length && !isDepthLimitReached) {
                 const { processedRequests } = await enqueueLinks({
                     selector: input.linkSelector,
-                    globs: input.globs,
+                    globs: input.includeUrlGlobs,
+                    exclude: input.excludeUrlGlobs,
                     userData: {
                         depth: depth + 1,
                     },

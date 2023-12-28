@@ -7,7 +7,8 @@ import { OpenAIModelSettings } from './models';
  */
 export interface Input extends OpenAIModelSettings {
     startUrls: RequestOptions[];
-    globs: GlobInput[];
+    includeUrlGlobs?: GlobInput[];
+    excludeUrlGlobs?: GlobInput[];
     linkSelector?: string;
     openaiApiKey: string;
     instructions: string;

@@ -13,10 +13,18 @@
             ],
             "editor": "requestListSources"
         },
-        "globs": {
-            "title": "Glob patterns",
+        "includeUrlGlobs": {
+            "title": "Include URLs (globs)",
             "type": "array",
-            "description": "Glob patterns let you match links in the page that you want to enqueue. Combine them with the link selector to tell the scraper where to find links. Omitting the glob patterns will cause the scraper to enqueue all links matched by the link selector.",
+            "description": "Glob patterns matching URLs of pages that will be included in crawling. Combine them with the link selector to tell the scraper where to find links. Omitting the glob patterns will cause the scraper to enqueue all links matched by the link selector.",
+            "editor": "globs",
+            "default": [],
+            "prefill": []
+        },
+        "excludeUrlGlobs": {
+            "title": "Exclude URLs (globs)",
+            "type": "array",
+            "description": "Glob patterns matching URLs of pages that will be excluded from crawling. Note that this affects only links found on pages, but not Start URLs, which are always crawled.",
             "editor": "globs",
             "default": [],
             "prefill": []
