@@ -10,9 +10,9 @@ const JSON_REGEX = /\{(?:[^{}]|())*\}/;
  */
 export const shrinkHtml = async (html: string, page: Page, removeElementsCssSelector?: string) => {
     const stripped = await page.evaluate(
-        ([unstripped, removeElementsCssSelector]) => {
+        ([unstripped, removeSelector]) => {
             const doc = new DOMParser().parseFromString(unstripped, 'text/html');
-            const elements = doc.querySelectorAll(removeElementsCssSelector || '');
+            const elements = doc.querySelectorAll(removeSelector || '');
             for (const element of elements) {
                 element.remove();
             }

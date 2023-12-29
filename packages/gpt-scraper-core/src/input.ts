@@ -3,8 +3,6 @@ import { Cookie } from 'crawlee';
 import { Page } from 'playwright';
 import { Input } from './types/input';
 
-export const HTML_TAGS_TO_IGNORE = ['script', 'style', 'noscript'];
-
 /**
  * Parses the Actor input. Throws an Actor fail if the input is invalid.
  */
