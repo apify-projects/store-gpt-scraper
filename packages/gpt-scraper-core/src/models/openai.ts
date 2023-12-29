@@ -47,7 +47,9 @@ export class OpenAIModelHandler extends GeneralModelHandler<OpenAIModelSettings>
         const possibleJsonAnswer = functionArguments || answer;
         const jsonAnswer = possibleJsonAnswer ? tryToParseJsonFromString(possibleJsonAnswer) : null;
 
-        return { answer, jsonAnswer, usage };
+        // it may return just function arguments (jsonAnswer), but if jsonAnswer is present, then `answer` should be too,
+        // so default `answer` to the unparsed value of `jsonAnswer`
+        return { answer: answer ?? possibleJsonAnswer, jsonAnswer, usage };
     }
 
     /**
