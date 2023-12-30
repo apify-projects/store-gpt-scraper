@@ -114,16 +114,8 @@
             "editor": "textfield",
             "default": "0"
         },
-        "proxyConfiguration": {
-            "sectionCaption": "Advanced configuration",
-            "title": "Proxy configuration",
-            "type": "object",
-            "description": "Specifies proxy servers that will be used by the scraper in order to hide its origin.<br><br>For details, see <a href='https://apify.com/drobnikj/gpt-scraper#proxy-configuration' target='_blank' rel='noopener'>Proxy configuration</a> in README.",
-            "prefill": { "useApifyProxy": true },
-            "default": { "useApifyProxy": false },
-            "editor": "proxy"
-        },
         "pageFormatInRequest": {
+            "sectionCaption": "Advanced configuration",
             "title": "Page format in request",
             "type": "string",
             "description": "In what format to send the content extracted from the page to the GPT. Markdown will take less space allowing for larger requests, while HTML may help include some information like attributes that may otherwise be omitted.",

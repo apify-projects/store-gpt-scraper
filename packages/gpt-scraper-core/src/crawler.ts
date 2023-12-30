@@ -7,14 +7,13 @@ import addFormats from 'ajv-formats';
 import { getModelByName } from './models/models.js';
 import { tryWrapInOpenaiError } from './models/openai.js';
 import { getNumberOfTextTokens, htmlToMarkdown, maybeShortsTextByTokenLength, shrinkHtml } from './processors.js';
+import { CrawlerState, Proxies } from './types/crawler-state.js';
 import { Input, PAGE_FORMAT } from './types/input.js';
 import { parseInput } from './input.js';
 import { OpenaiAPIError } from './errors.js';
+import { proxyManagerHook, proxyManagerPostHook } from './hooks/proxy-manager-hooks.js';
 import { OpenAIModelSettings } from './types/models.js';
-
-interface State {
-    pageOutputted: number;
-}
+import { ProxyType } from './types/proxy.js';
 
 /**
  * Parse and validate JSON schema, if valid return it, otherwise failed actor.
@@ -66,6 +65,12 @@ export const createCrawler = async ({ input }: { input: Input }) => {
         presencePenalty: input.presencePenalty,
     };
 
+    const proxies: Proxies = {
+        [ProxyType.DATA_CENTER]: await Actor.createProxyConfiguration({ useApifyProxy: true, groups: ['auto'] }),
+        [ProxyType.RESIDENTIAL]: await Actor.createProxyConfiguration({ useApifyProxy: true, groups: ['RESIDENTIAL'] }),
+    };
+    const defaultProxy = proxies[ProxyType.DATA_CENTER];
+
     const crawler = new PlaywrightCrawler({
         launchContext: {
             launchOptions: {
@@ -75,13 +80,17 @@ export const createCrawler = async ({ input }: { input: Input }) => {
         },
         retryOnBlocked: true,
         requestHandlerTimeoutSecs: 3 * 60,
-        proxyConfiguration: input.proxyConfiguration && await Actor.createProxyConfiguration(input.proxyConfiguration),
+        proxyConfiguration: input.proxyConfiguration
+            ? await Actor.createProxyConfiguration(input.proxyConfiguration)
+            : defaultProxy,
         maxRequestsPerCrawl: input.maxPagesPerCrawl,
         requestList,
+        preNavigationHooks: [proxyManagerHook],
+        postNavigationHooks: [proxyManagerPostHook],
 
         async requestHandler({ request, page, enqueueLinks, closeCookieModals }) {
             const { depth = 0 } = request.userData;
-            const state = await crawler.useState({ pageOutputted: 0 } as State);
+            const state = await crawler.useState({ pageOutputted: 0 } as CrawlerState);
             const url = request.loadedUrl || request.url;
 
             if (input.maxPagesPerCrawl && state.pageOutputted >= input.maxPagesPerCrawl) {
@@ -245,6 +254,8 @@ export const createCrawler = async ({ input }: { input: Input }) => {
             });
         },
     });
+
+    crawler.useState<CrawlerState>({ pageOutputted: 0, config: { ...input, proxies } });
 
     return crawler;
 };

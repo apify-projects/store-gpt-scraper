@@ -15,7 +15,7 @@ export interface Input extends OpenAIModelSettings {
     targetSelector?: string;
     maxPagesPerCrawl: number;
     maxCrawlingDepth: number;
-    proxyConfiguration: ProxyConfigurationOptions;
+    proxyConfiguration?: ProxyConfigurationOptions;
     schema?: AnySchema | undefined;
     useStructureOutput?: boolean;
     pageFormatInRequest?: PAGE_FORMAT;
