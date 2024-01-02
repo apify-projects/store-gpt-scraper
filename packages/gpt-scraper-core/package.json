@@ -26,7 +26,6 @@
         "cheerio": "^1.0.0-rc.12",
         "crawlee": "^3.0.0",
         "gpt-3-encoder": "^1.1.4",
-        "html-to-text": "^9.0.5",
         "joplin-turndown-plugin-gfm": "^1.0.12",
         "langchain": "^0.0.197-rc.1",
         "openai": "^3.3.0",
