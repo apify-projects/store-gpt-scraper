@@ -1,6 +1,6 @@
 import { Actor, log } from 'apify';
 import { createCrawler } from '@packages/gpt-scraper-core';
-import { Input } from './input.js';
+import { Input, updateDeprecatedInput } from './input.js';
 
 // We used just one model to simplify pricing, if user wants to use with he needs to use extended version of the actor.
 const DEFAULT_PEY_PER_RESULT_OPENAI_MODEL = 'gpt-3.5-turbo';
@@ -26,6 +26,8 @@ if (process.env.ACTOR_MAX_PAID_DATASET_ITEMS) {
     }
 }
 
+await updateDeprecatedInput(input);
+
 if (process.env.OPENAI_API_KEY) {
     const crawler = await createCrawler({
         input: {
@@ -35,6 +37,9 @@ if (process.env.OPENAI_API_KEY) {
             openaiApiKey: process.env.OPENAI_API_KEY,
         },
     });
+
+    // We explicitly remove it so we are sure the key is only passed through params to remove double source of truth
+    delete process.env.OPENAI_API_KEY;
 
     log.info('Configuration completed. Starting the crawl.');
     await crawler.run();

@@ -5,11 +5,11 @@ import { createRequestDebugInfo } from '@crawlee/utils';
 import Ajv2020 from 'ajv/dist/2020.js';
 import addFormats from 'ajv-formats';
 import { getModelByName } from './models/models.js';
-import { tryWrapInOpenaiError } from './models/openai.js';
 import { getNumberOfTextTokens, htmlToMarkdown, maybeShortsTextByTokenLength, shrinkHtml } from './processors.js';
 import { Input, PAGE_FORMAT } from './types/input.js';
 import { parseInput } from './input.js';
-import { OpenaiAPIError } from './errors.js';
+import { NonRetryableOpenaiAPIError } from './errors.js';
+import { parseInput, validateInput, validateInputCssSelectors } from './input.js';
 import { OpenAIModelSettings } from './types/models.js';
 
 interface State {
@@ -40,6 +40,7 @@ const validateSchemaOrFail = async (schema: AnySchema | undefined): Promise<AnyS
 
 export const createCrawler = async ({ input }: { input: Input }) => {
     input = await parseInput(input);
+    await validateInput(input);
 
     const model = getModelByName(input.model);
     if (!model) throw await Actor.fail(`Model ${input.model} is not supported`);
@@ -59,6 +60,7 @@ export const createCrawler = async ({ input }: { input: Input }) => {
     const kvStore = await KeyValueStore.open();
 
     const modelSettings: OpenAIModelSettings = {
+        openAIApiKey: input.openaiApiKey,
         temperature: input.temperature,
         topP: input.topP,
         frequencyPenalty: input.frequencyPenalty,
@@ -83,6 +85,9 @@ export const createCrawler = async ({ input }: { input: Input }) => {
             const state = await crawler.useState({ pageOutputted: 0 } as State);
             const url = request.loadedUrl || request.url;
 
+            const isFirstPage = state.pageOutputted === 0;
+            if (isFirstPage) await validateInputCssSelectors(input, page);
+
             if (input.maxPagesPerCrawl && state.pageOutputted >= input.maxPagesPerCrawl) {
                 log.info(`Reached max pages per run (${input.maxPagesPerCrawl}), skipping URL ${url}.`);
                 await Actor.exit(`Finished! Reached max pages per run (${input.maxPagesPerCrawl}).`);
@@ -96,10 +101,11 @@ export const createCrawler = async ({ input }: { input: Input }) => {
             // Enqueue links
             // If maxCrawlingDepth is not set or 0 the depth is infinite.
             const isDepthLimitReached = !!input.maxCrawlingDepth && depth >= input.maxCrawlingDepth;
-            if (input.linkSelector && input?.globs?.length && !isDepthLimitReached) {
+            if (input.linkSelector && input?.includeUrlGlobs?.length && !isDepthLimitReached) {
                 const { processedRequests } = await enqueueLinks({
                     selector: input.linkSelector,
-                    globs: input.globs,
+                    globs: input.includeUrlGlobs,
+                    exclude: input.excludeUrlGlobs,
                     userData: {
                         depth: depth + 1,
                     },
@@ -125,7 +131,8 @@ export const createCrawler = async ({ input }: { input: Input }) => {
                 originContentHtml = await page.content();
             }
 
-            const originPageContent = pageFormat === PAGE_FORMAT.MARKDOWN ? htmlToMarkdown(originContentHtml) : await shrinkHtml(originContentHtml, page);
+            const shrunkHtml = await shrinkHtml(originContentHtml, page, input.removeElementsCssSelector);
+            const originPageContent = pageFormat === PAGE_FORMAT.MARKDOWN ? htmlToMarkdown(shrunkHtml) : shrunkHtml;
 
             const instructionTokenLength = getNumberOfTextTokens(input.instructions);
 
@@ -176,11 +183,8 @@ export const createCrawler = async ({ input }: { input: Input }) => {
                 answer = answerResult.answer;
                 jsonAnswer = answerResult.jsonAnswer;
                 model.updateApiCallUsage(answerResult.usage);
-            } catch (err: any) {
-                const error = tryWrapInOpenaiError(err);
-                if (error instanceof OpenaiAPIError && error.message.includes('Invalid schema')) {
-                    // TODO: find a way to validate schema before running the actor
-                    // see #12
+            } catch (error: any) {
+                if (error instanceof NonRetryableOpenaiAPIError) {
                     throw await Actor.fail(error.message);
                 }
                 throw error;

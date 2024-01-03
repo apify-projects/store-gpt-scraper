@@ -1,21 +1,37 @@
-import { log } from 'crawlee';
 import { AnySchema } from 'ajv';
-import retry, { RetryFunction } from 'async-retry';
+import { log, sleep } from 'crawlee';
 import { ChatOpenAI } from 'langchain/chat_models/openai';
 import { OpenAI } from 'langchain/llms/openai';
 import { LLMResult } from 'langchain/schema';
-import { OpenaiAPIError } from '../errors.js';
+import { NonRetryableOpenaiAPIError, OpenaiAPIError, RateLimitedError } from '../errors.js';
 import { tryToParseJsonFromString } from '../processors.js';
 import { ProcessInstructionsOptions } from '../types/model.js';
 import { OpenAIModelSettings } from '../types/models.js';
 import { GeneralModelHandler } from './model.js';
 
-// TODO: refactor: make this error modular with other non-OpenAI models
-export const tryWrapInOpenaiError = (error: any) => {
-    if (error?.response?.data?.error) {
-        return new OpenaiAPIError(error.response.data.error.message || error.response.data.error.code);
+const MAX_GPT_RETRIES = 8;
+
+/**
+ * Wraps the error in a custom error class. Used for the handling errors.
+ * - Langchain doesn't have a proper error type, so we need to normalize it.
+ * - The error message attribute changes depending on the error type.
+ *
+ * see OpenAI errors documentation: https://platform.openai.com/docs/guides/error-codes/api-errors
+ */
+const wrapInOpenaiError = (error: any): OpenaiAPIError | NonRetryableOpenaiAPIError | RateLimitedError => {
+    const errorMessage = error.error?.message || error.code || error.message;
+
+    // The error structure is completely different for insufficient quota errors. We need to handle it separately.
+    if (error.name === 'InsufficientQuotaError') {
+        return new NonRetryableOpenaiAPIError(errorMessage);
     }
-    return error;
+
+    const isOpenAIServerError = [500, 503].includes(error.status);
+    if (isOpenAIServerError) return new OpenaiAPIError(errorMessage, error.status);
+
+    if (error.status === 429) return new RateLimitedError(errorMessage);
+
+    return new NonRetryableOpenaiAPIError(errorMessage, error.status);
 };
 
 export class OpenAIModelHandler extends GeneralModelHandler<OpenAIModelSettings> {
@@ -47,42 +63,41 @@ export class OpenAIModelHandler extends GeneralModelHandler<OpenAIModelSettings>
         const possibleJsonAnswer = functionArguments || answer;
         const jsonAnswer = possibleJsonAnswer ? tryToParseJsonFromString(possibleJsonAnswer) : null;
 
-        return { answer, jsonAnswer, usage };
+        // it may return just function arguments (jsonAnswer), but if jsonAnswer is present, then `answer` should be too,
+        // so default `answer` to the unparsed value of `jsonAnswer`
+        return { answer: answer ?? possibleJsonAnswer, jsonAnswer, usage };
     }
 
     /**
      * Calls processInstructions with exponential backoff.
-     *
-     * // TODO: refactor: perhaps we can achieve this with only crawlee?
      */
-    processInstructionsWithRetry = (options: ProcessInstructionsOptions<OpenAIModelSettings>) => {
-        const process: RetryFunction<any> = async (stopTrying: (e: Error) => void, attempt: number) => {
+    processInstructionsWithRetry = async (options: ProcessInstructionsOptions<OpenAIModelSettings>) => {
+        for (let retry = 1; retry < MAX_GPT_RETRIES + 1; retry++) {
             try {
                 return await this.processInstructions(options);
             } catch (error: any) {
-                // NOTE: OpenAI API returns 429 with insufficient_quota, user needs to buy a plan.
-                if (error?.response?.status === 429 && error.response?.data?.error?.type === 'insufficient_quota') {
-                    stopTrying(error);
-                    return;
-                }
-                if (![429, 500, 503].includes(error?.response?.status)) {
-                    stopTrying(error);
-                    return;
-                }
-                // Add rate limit error to stats, the autoscaled pool will use it to scale down the pool.
-                if (error?.response?.status === 429) options.apifyClient.stats.addRateLimitError(attempt);
+                const wrappedError = wrapInOpenaiError(error);
+
+                if (wrappedError instanceof NonRetryableOpenaiAPIError) throw wrappedError;
+
                 log.warning(`OpenAI API error, retrying...`, {
-                    error: error.response?.data?.error?.message || error.message,
-                    statusCode: error?.response?.status,
-                    attempt,
+                    error: wrappedError.message,
+                    statusCode: wrappedError.statusCode,
+                    attempt: retry,
                 });
-                throw error;
+
+                // Add rate limit error to stats, the autoscaled pool will use it to scale down the pool.
+                if (wrappedError instanceof RateLimitedError) options.apifyClient.stats.addRateLimitError(retry);
+
+                // Exponential backoff
+                // TODO: improve this for rate limit errors - we should use the value from 'retry-after' header
+                // - (not sure if that is available in langchain though...)
+                const timeout = 500 * retry ** 2;
+                await sleep(timeout);
             }
-        };
-        return retry(process, {
-            retries: 8,
-            minTimeout: 500,
-        });
+        }
+
+        throw new Error(`OpenAI API failed after ${MAX_GPT_RETRIES} retries`);
     };
 
     /**
