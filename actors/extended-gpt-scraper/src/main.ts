@@ -1,7 +1,8 @@
 import { Actor } from 'apify';
 import { log } from 'crawlee';
 import { createCrawler } from '@packages/gpt-scraper-core';
-import { Input, updateDeprecatedInput } from './input.js';
+import type { Input } from './input.js';
+import { updateDeprecatedInput } from './input.js';
 
 // Initialize the Apify SDK
 await Actor.init();
