@@ -10,6 +10,29 @@ import { ProcessInstructionsOptions } from '../types/model.js';
 import { OpenAIModelSettings } from '../types/models.js';
 import { GeneralModelHandler } from './model.js';
 
+/**
+ * Wraps the error in a custom error class. Used for the handling errors.
+ * - Langchain doesn't have a proper error type, so we need to normalize it.
+ * - The error message attribute changes depending on the error type.
+ *
+ * see OpenAI errors documentation: https://platform.openai.com/docs/guides/error-codes/api-errors
+ */
+const wrapInOpenaiError = (error: any): OpenaiAPIError | NonRetryableOpenaiAPIError | RateLimitedError => {
+    const errorMessage = error.error?.message || error.code || error.message;
+
+    // The error structure is completely different for insufficient quota errors. We need to handle it separately.
+    if (error.name === 'InsufficientQuotaError') {
+        return new NonRetryableOpenaiAPIError(errorMessage);
+    }
+
+    const isOpenAIServerError = [500, 503].includes(error.status);
+    if (isOpenAIServerError) return new OpenaiAPIError(errorMessage, error.status);
+
+    if (error.status === 429) return new RateLimitedError(errorMessage);
+
+    return new NonRetryableOpenaiAPIError(errorMessage, error.status);
+};
+
 export class OpenAIModelHandler extends GeneralModelHandler<OpenAIModelSettings> {
     async processInstructions(options: ProcessInstructionsOptions<OpenAIModelSettings>) {
         const { instructions, content, schema, modelSettings } = options;
@@ -52,7 +75,7 @@ export class OpenAIModelHandler extends GeneralModelHandler<OpenAIModelSettings>
             try {
                 return await this.processInstructions(options);
             } catch (error: any) {
-                const wrappedError = this.wrapInOpenaiError(error);
+                const wrappedError = wrapInOpenaiError(error);
 
                 if (wrappedError instanceof NonRetryableOpenaiAPIError) {
                     stopTrying(wrappedError);
@@ -75,29 +98,6 @@ export class OpenAIModelHandler extends GeneralModelHandler<OpenAIModelSettings>
             retries: 8,
             minTimeout: 500,
         });
-    };
-
-    /**
-     * Wraps the error in a custom error class. Used for the handling errors.
-     * - Langchain doesn't have a proper error type, so we need to normalize it.
-     * - The error message attribute changes depending on the error type.
-     *
-     * see OpenAI errors documentation: https://platform.openai.com/docs/guides/error-codes/api-errors
-     */
-    private wrapInOpenaiError = (error: any): OpenaiAPIError | NonRetryableOpenaiAPIError | RateLimitedError => {
-        const errorMessage = error.error?.message || error.code || error.message;
-
-        // The error structure is completely different for insufficient quota errors. We need to handle it separately.
-        if (error.name === 'InsufficientQuotaError') {
-            return new NonRetryableOpenaiAPIError(errorMessage);
-        }
-
-        const isOpenAIServerError = [500, 503].includes(error.status);
-        if (isOpenAIServerError) return new OpenaiAPIError(errorMessage, error.status);
-
-        if (error.status === 429) return new RateLimitedError(errorMessage);
-
-        return new NonRetryableOpenaiAPIError(errorMessage, error.status);
     };
 
     /**
