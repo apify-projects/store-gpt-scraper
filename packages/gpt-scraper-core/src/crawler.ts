@@ -7,9 +7,8 @@ import addFormats from 'ajv-formats';
 import { getModelByName } from './models/models.js';
 import { getNumberOfTextTokens, htmlToMarkdown, maybeShortsTextByTokenLength, shrinkHtml } from './processors.js';
 import { Input, PAGE_FORMAT } from './types/input.js';
-import { parseInput } from './input.js';
-import { NonRetryableOpenaiAPIError } from './errors.js';
 import { parseInput, validateInput, validateInputCssSelectors } from './input.js';
+import { NonRetryableOpenaiAPIError } from './errors.js';
 import { OpenAIModelSettings } from './types/models.js';
 import { doesUrlMatchGlobs } from './utils.js';
 
