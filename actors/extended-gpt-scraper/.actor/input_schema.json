@@ -13,10 +13,18 @@
             ],
             "editor": "requestListSources"
         },
-        "globs": {
-            "title": "Glob patterns",
+        "includeUrlGlobs": {
+            "title": "Include URLs (globs)",
             "type": "array",
-            "description": "Glob patterns let you match links in the page that you want to enqueue. Combine them with the link selector to tell the scraper where to find links. Omitting the glob patterns will cause the scraper to enqueue all links matched by the link selector.",
+            "description": "Glob patterns matching URLs of pages that will be included in crawling. Combine them with the link selector to tell the scraper where to find links. Omitting the glob patterns will cause the scraper to enqueue all links matched by the link selector.",
+            "editor": "globs",
+            "default": [],
+            "prefill": []
+        },
+        "excludeUrlGlobs": {
+            "title": "Exclude URLs (globs)",
+            "type": "array",
+            "description": "Glob patterns matching URLs of pages that will be excluded from crawling. Note that this affects only links found on pages, but not Start URLs, which are always crawled.",
             "editor": "globs",
             "default": [],
             "prefill": []
@@ -27,6 +35,14 @@
             "description": "This is a CSS selector that says which links on the page (<code>&lt;a&gt;</code> elements with <code>href</code> attribute) should be followed and added to the request queue. To filter the links added to the queue, use the <b>Pseudo-URLs</b> setting.<br><br>If <b>Link selector</b> is empty, the page links are ignored.<br><br>For details, see <a href='https://apify.com/drobnikj/extended-gpt-scraper#link-selector' target='_blank' rel='noopener'>Link selector</a> in README.",
             "editor": "textfield",
             "prefill": "a[href]"
+        },
+        "initialCookies": {
+            "title": "Initial cookies",
+            "type": "array",
+            "description": "Cookies that will be pre-set to all pages the scraper opens. This is useful for pages that require login. The value is expected to be a JSON array of objects with `name`, `value`, 'domain' and 'path' properties. For example: `[{\"name\": \"cookieName\", \"value\": \"cookieValue\"}, \"domain\": \".domain.com\", \"path\": \"/\"}]`.\n\nYou can use the [EditThisCookie](https://chrome.google.com/webstore/detail/editthiscookie/fngmhnnpilhplaeedifhccceomclgfbg) browser extension to copy browser cookies in this format, and paste it here.",
+            "default": [],
+            "prefill": [],
+            "editor": "json"
         },
         "openaiApiKey": {
             "title": "OpenAI API key",
@@ -49,8 +65,8 @@
             "editor": "select",
             "default": "gpt-3.5-turbo",
             "prefill": "gpt-3.5-turbo",
-            "enum": ["gpt-3.5-turbo", "gpt-3.5-turbo-16k", "gpt-4", "gpt-4-32k", "text-davinci-003"],
-            "enumTitles": ["GPT-3.5 Turbo", "GPT-3.5 Turbo 16k", "GPT-4", "GPT-4 32k", "GTP-3 (davinci)"]
+            "enum": ["gpt-3.5-turbo", "gpt-3.5-turbo-16k", "gpt-4", "gpt-4-32k", "text-davinci-003", "gpt-4-turbo"],
+            "enumTitles": ["GPT-3.5 Turbo", "GPT-3.5 Turbo 16k", "GPT-4", "GPT-4 32k", "GTP-3 (davinci)", "GPT-4 Turbo (Preview)"]
         },
         "targetSelector": {
             "title": "Content selector",
@@ -58,6 +74,14 @@
             "description": "A CSS selector of the HTML element on the page that will be used in the instruction. Instead of a whole page, you can use only part of the page. For example: \"div#content\".",
             "editor": "textfield",
             "prefill": ""
+        },
+        "removeElementsCssSelector": {
+            "title": "Remove HTML elements (CSS selector)",
+            "type": "string",
+            "description": "A CSS selector matching HTML elements that will be removed from the DOM, before sending it to GPT processing. This is useful to skip irrelevant page content and save on GPT input tokens. \n\nBy default, the Actor removes usually unwanted elements like scripts, styles and inline images. You can disable the removal by setting this value to some non-existent CSS selector like `dummy_keep_everything`.",
+            "editor": "textarea",
+            "default": "script, style, noscript, path, svg, xlink",
+            "prefill": "script, style, noscript, path, svg, xlink"
         },
         "maxCrawlingDepth": {
             "title": "Max crawling depth",

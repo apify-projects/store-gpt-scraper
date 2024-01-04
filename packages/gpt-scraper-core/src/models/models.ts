@@ -77,6 +77,15 @@ const OPEN_AI_MODELS: ModelsGroup = {
             output: 0.12,
         },
     },
+    'gpt-4-turbo': {
+        modelName: 'gpt-4-1106-preview',
+        maxTokens: 128_000,
+        interface: 'chat',
+        cost: {
+            input: 0.01,
+            output: 0.03,
+        },
+    },
 } as const;
 
 export const MODELS_GROUPS: ModelsGroups = {

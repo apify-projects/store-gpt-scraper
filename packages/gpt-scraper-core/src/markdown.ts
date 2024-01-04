@@ -2,7 +2,6 @@
 import TurndownService from 'turndown';
 // @ts-ignore
 import plugin from 'joplin-turndown-plugin-gfm';
-import { HTML_TAGS_TO_IGNORE } from './input.js';
 
 /*
 const cleanWhitespaces = (attribute?: string) => {
@@ -49,7 +48,6 @@ export const htmlToMarkdownProcessor = new TurndownService({
     codeBlockStyle: 'fenced',
 
 });
-HTML_TAGS_TO_IGNORE.forEach((tag: any) => htmlToMarkdownProcessor.remove(tag));
 htmlToMarkdownProcessor.use(plugin.gfm); // Use Github Flavored Markdown
 // TODO: Check how it performs without these rules
 // htmlToMarkdownProcessor.addRule('ignoreHrefSrc', ignoreHrefSrc);
