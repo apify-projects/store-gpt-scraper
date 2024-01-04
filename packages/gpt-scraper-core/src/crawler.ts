@@ -114,9 +114,9 @@ export const createCrawler = async ({ input }: { input: Input }) => {
                 );
             }
 
-            const skipGptProcessing = shouldSkipGptProcessing(url, input.skipGptGlobs);
+            const skipGptProcessing = input.skipGptGlobs && doesUrlMatchGlobs(url, input.skipGptGlobs);
             if (skipGptProcessing) {
-                return log.info(`Skipping page '${url}' from GPT processing, crawling only.`);
+                log.info(`Skipping page from GPT processing because it matched 'skipGptGlobs', crawling only.`, { url });
             }
 
             // A function to be evaluated by Playwright within the browser context.
@@ -253,10 +253,4 @@ export const createCrawler = async ({ input }: { input: Input }) => {
     });
 
     return crawler;
-};
-
-const shouldSkipGptProcessing = (url: string, skipGptGlobs: Input['skipGptGlobs']): boolean => {
-    if (!skipGptGlobs) return false;
-
-    return doesUrlMatchGlobs(url, skipGptGlobs);
 };

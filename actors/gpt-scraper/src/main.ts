@@ -27,6 +27,7 @@ if (process.env.ACTOR_MAX_PAID_DATASET_ITEMS) {
 }
 
 if (process.env.OPENAI_API_KEY) {
+    /** Input for the PPR Actor. We explicitly override some of these values, so that users don't change them. */
     const adjustedPayPerResultInput = {
         ...input,
         maxPagesPerCrawl: maxRequestsPerCrawl,
