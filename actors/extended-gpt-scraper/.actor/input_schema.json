@@ -98,6 +98,14 @@
             "default": 10,
             "unit": "pages"
         },
+        "skipGptGlobs": {
+            "title": "Skip GPT processing for Globs",
+            "type": "array",
+            "description": "This setting allows you to specify certain page URLs to skip GPT instructions for. Pages matching these glob patterns will only be crawled for links, excluding them from GPT processing. Useful for intermediary pages used for navigation or undesired content.",
+            "editor": "globs",
+            "default": [],
+            "prefill": []
+        },
         "useStructureOutput": {
             "sectionCaption": "Formatted output",
             "sectionDescription": "By default, the scraper outputs text answers for each page. If you want to get data in a structured format, you can define a JSON schema. The scraper uses [function](https://platform.openai.com/docs/api-reference/chat/create#chat/create-functions), which is called for each page. The function receives the page content and returns the answer in the defined JSON format.",

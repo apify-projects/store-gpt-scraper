@@ -7,10 +7,10 @@ import addFormats from 'ajv-formats';
 import { getModelByName } from './models/models.js';
 import { getNumberOfTextTokens, htmlToMarkdown, maybeShortsTextByTokenLength, shrinkHtml } from './processors.js';
 import { Input, PAGE_FORMAT } from './types/input.js';
-import { parseInput } from './input.js';
-import { NonRetryableOpenaiAPIError } from './errors.js';
 import { parseInput, validateInput, validateInputCssSelectors } from './input.js';
+import { NonRetryableOpenaiAPIError } from './errors.js';
 import { OpenAIModelSettings } from './types/models.js';
+import { doesUrlMatchGlobs } from './utils.js';
 
 interface State {
     pageOutputted: number;
@@ -116,6 +116,11 @@ export const createCrawler = async ({ input }: { input: Input }) => {
                     `Page ${url} enqueued ${enqueuedLinks.length} new URLs.`,
                     { foundLinksCount: enqueuedLinks.length, enqueuedLinksCount: enqueuedLinks.length, alreadyPresentLinksCount },
                 );
+            }
+
+            const skipGptProcessing = input.skipGptGlobs && doesUrlMatchGlobs(url, input.skipGptGlobs);
+            if (skipGptProcessing) {
+                log.info(`Skipping page from GPT processing because it matched 'skipGptGlobs', crawling only.`, { url });
             }
 
             // A function to be evaluated by Playwright within the browser context.

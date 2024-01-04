@@ -27,6 +27,7 @@
         "gpt-3-encoder": "^1.1.4",
         "joplin-turndown-plugin-gfm": "^1.0.12",
         "langchain": "^0.0.209",
+        "minimatch": "^9.0.3",
         "openai": "^3.3.0",
         "playwright": "*",
         "turndown": "^7.1.2"

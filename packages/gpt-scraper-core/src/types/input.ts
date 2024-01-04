@@ -21,6 +21,7 @@ export interface Input extends OpenAIModelSettings {
     useStructureOutput?: boolean;
     pageFormatInRequest?: PAGE_FORMAT;
     saveSnapshots?: boolean;
+    skipGptGlobs?: GlobInput[];
     initialCookies?: Cookie[];
     removeElementsCssSelector?: string;
 }
