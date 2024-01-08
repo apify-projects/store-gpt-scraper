@@ -121,6 +121,7 @@ export const createCrawler = async ({ input }: { input: Input }) => {
             const skipGptProcessing = input.skipGptGlobs && doesUrlMatchGlobs(url, input.skipGptGlobs);
             if (skipGptProcessing) {
                 log.info(`Skipping page from GPT processing because it matched 'skipGptGlobs', crawling only.`, { url });
+                return;
             }
 
             // A function to be evaluated by Playwright within the browser context.
