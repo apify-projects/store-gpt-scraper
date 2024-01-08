@@ -1,6 +1,6 @@
 import { Actor } from 'apify';
 import { AnySchema } from 'ajv';
-import { PlaywrightCrawler, Dataset, log, RequestList, utils, KeyValueStore } from 'crawlee';
+import { PlaywrightCrawler, Dataset, log, RequestList, utils, KeyValueStore, NonRetryableError } from 'crawlee';
 import { createRequestDebugInfo } from '@crawlee/utils';
 import Ajv2020 from 'ajv/dist/2020.js';
 import addFormats from 'ajv-formats';
@@ -13,11 +13,9 @@ import { OpenAIModelSettings } from './types/models.js';
 import { doesUrlMatchGlobs } from './utils.js';
 
 interface State {
-    pageOutputted: number;
     pagesOpened: number;
 }
 const DEFAULT_STATE: State = {
-    pageOutputted: 0,
     pagesOpened: 0,
 };
 
@@ -88,7 +86,9 @@ export const createCrawler = async ({ input }: { input: Input }) => {
             async () => {
                 const state = await crawler.useState<State>(DEFAULT_STATE);
                 if (state.pagesOpened >= input.maxPagesPerCrawl) {
-                    await exitActorOnMaxPages(input.maxPagesPerCrawl);
+                    const err = new NonRetryableError('Skipping this page');
+                    err.name = 'LimitError';
+                    throw err;
                 }
             },
         ],
@@ -96,16 +96,11 @@ export const createCrawler = async ({ input }: { input: Input }) => {
         async requestHandler({ request, page, enqueueLinks, closeCookieModals }) {
             const { depth = 0 } = request.userData;
             const state = await crawler.useState<State>(DEFAULT_STATE);
+            const isFirstPage = state.pagesOpened === 0;
             state.pagesOpened++;
             const url = request.loadedUrl || request.url;
 
-            const isFirstPage = state.pageOutputted === 0;
             if (isFirstPage) await validateInputCssSelectors(input, page);
-
-            if (input.maxPagesPerCrawl && state.pageOutputted >= input.maxPagesPerCrawl) {
-                await exitActorOnMaxPages(input.maxPagesPerCrawl);
-                return;
-            }
 
             log.info(`Opening ${url}...`);
 
@@ -220,11 +215,6 @@ export const createCrawler = async ({ input }: { input: Input }) => {
                 return;
             }
 
-            if (input.maxPagesPerCrawl && state.pageOutputted >= input.maxPagesPerCrawl) {
-                await exitActorOnMaxPages(input.maxPagesPerCrawl);
-                return;
-            }
-
             log.info(`Page ${url} processed.`, {
                 openaiUsage: model.stats.usage,
                 usdUsage: model.stats.finalCostUSD,
@@ -246,10 +236,12 @@ export const createCrawler = async ({ input }: { input: Input }) => {
                     apiCallsCount: model.stats.apiCallsCount,
                 },
             });
-            state.pageOutputted++;
         },
 
         async failedRequestHandler({ request }, error: Error) {
+            if (error.name === 'LimitError') {
+                return;
+            }
             const errorMessage = error.message || 'no error';
             const url = request.loadedUrl || request.url;
             log.error(`Request ${url} failed and will not be retried anymore. Marking as failed.\nLast Error Message: ${errorMessage}`);
@@ -267,12 +259,14 @@ export const createCrawler = async ({ input }: { input: Input }) => {
         },
     });
 
+    // @ts-expect-error patching
+    const oldCrawlerLogError = crawler.log.error.bind(crawler.log);
+    // @ts-expect-error patching
+    crawler.log.error = (...args) => {
+        try {
+            if (args[0].includes('LimitError')) return;
+        } catch (e) { /* empty */ }
+        return oldCrawlerLogError(...args);
+    };
     return crawler;
-};
-
-const exitActorOnMaxPages = async (maxPagesPerCrawl: number) => {
-    log.info(`Reached max pages per run (${maxPagesPerCrawl}), exiting actor.`);
-    await Actor.exit(`Finished! Reached max pages per run (${maxPagesPerCrawl}).`, {
-        timeoutSecs: 0,
-    });
 };
