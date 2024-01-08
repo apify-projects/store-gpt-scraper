@@ -14,7 +14,12 @@ import { doesUrlMatchGlobs } from './utils.js';
 
 interface State {
     pageOutputted: number;
+    pagesOpened: number;
 }
+const DEFAULT_STATE: State = {
+    pageOutputted: 0,
+    pagesOpened: 0,
+};
 
 /**
  * Parse and validate JSON schema, if valid return it, otherwise failed actor.
@@ -33,7 +38,7 @@ const validateSchemaOrFail = async (schema: AnySchema | undefined): Promise<AnyS
     } catch (e: any) {
         log.error(`Schema is not valid: ${e.message}`, { error: e });
         await Actor.fail('Schema is not valid. Go to Actor run log, '
-                    + 'where you can find error details or disable "Use JSON schema to format answer" option.');
+            + 'where you can find error details or disable "Use JSON schema to format answer" option.');
     }
     return undefined;
 };
@@ -79,24 +84,26 @@ export const createCrawler = async ({ input }: { input: Input }) => {
         proxyConfiguration: input.proxyConfiguration && await Actor.createProxyConfiguration(input.proxyConfiguration),
         maxRequestsPerCrawl: input.maxPagesPerCrawl,
         requestList,
+        preNavigationHooks: [
+            async () => {
+                const state = await crawler.useState<State>(DEFAULT_STATE);
+                if (state.pagesOpened >= input.maxPagesPerCrawl) {
+                    await exitActorOnMaxPages(input.maxPagesPerCrawl);
+                }
+            },
+        ],
 
         async requestHandler({ request, page, enqueueLinks, closeCookieModals }) {
             const { depth = 0 } = request.userData;
-            const state = await crawler.useState({ pageOutputted: 0 } as State);
+            const state = await crawler.useState<State>(DEFAULT_STATE);
+            state.pagesOpened++;
             const url = request.loadedUrl || request.url;
 
             const isFirstPage = state.pageOutputted === 0;
             if (isFirstPage) await validateInputCssSelectors(input, page);
 
-            const exitActorOnMaxPages = async () => {
-                log.info(`Reached max pages per run (${input.maxPagesPerCrawl}), exiting actor.`);
-                await Actor.exit(`Finished! Reached max pages per run (${input.maxPagesPerCrawl}).`, {
-                    timeoutSecs: 0,
-                });
-            };
-
             if (input.maxPagesPerCrawl && state.pageOutputted >= input.maxPagesPerCrawl) {
-                await exitActorOnMaxPages();
+                await exitActorOnMaxPages(input.maxPagesPerCrawl);
                 return;
             }
 
@@ -214,7 +221,7 @@ export const createCrawler = async ({ input }: { input: Input }) => {
             }
 
             if (input.maxPagesPerCrawl && state.pageOutputted >= input.maxPagesPerCrawl) {
-                await exitActorOnMaxPages();
+                await exitActorOnMaxPages(input.maxPagesPerCrawl);
                 return;
             }
 
@@ -261,4 +268,11 @@ export const createCrawler = async ({ input }: { input: Input }) => {
     });
 
     return crawler;
+};
+
+const exitActorOnMaxPages = async (maxPagesPerCrawl: number) => {
+    log.info(`Reached max pages per run (${maxPagesPerCrawl}), exiting actor.`);
+    await Actor.exit(`Finished! Reached max pages per run (${maxPagesPerCrawl}).`, {
+        timeoutSecs: 0,
+    });
 };
