@@ -1,24 +1,27 @@
 /* eslint-disable max-classes-per-file */
-/**
- * Error will be propagate into scraper output.
- */
-export class UserFacedError extends Error {
-    constructor(message: string) {
-        super(message);
-        this.name = 'UserFacedError';
-        this.message = message;
-    }
-}
 
 /**
  * Error from OpenAI API.
  */
 export class OpenaiAPIError extends Error {
-    constructor(message?: string) {
+    statusCode?: number;
+
+    constructor(message?: string, statusCode?: number) {
         const name = 'OpenaiAPIError';
         const tuneMessage = `OpenaiAPIError: ${message || 'Internal Error'}`;
         super(message);
         this.name = name;
         this.message = tuneMessage;
+        this.statusCode = statusCode;
     }
 }
+
+/**
+ * Error from OpenAI API. This error indicates that the request should not be retried.
+ */
+export class NonRetryableOpenaiAPIError extends OpenaiAPIError {}
+
+/**
+ * Error from OpenAI API. Indicates that the request should be retried after a while.
+ */
+export class RateLimitedError extends OpenaiAPIError {}

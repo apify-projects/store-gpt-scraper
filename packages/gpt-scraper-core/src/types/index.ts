@@ -1,2 +1,2 @@
-export { HTML_TAGS_TO_IGNORE, Input, PAGE_FORMAT } from './input.js';
-export { OpenAIModelSettings } from './models.js';
+export { type Input, PAGE_FORMAT } from './input.js';
+export { type OpenAIModelSettings } from './models.js';
