@@ -1,5 +1,17 @@
 This changelog tracks updates to both GTP Scraper and Extended GPT Scraper actors.
 
+### 2023-01-08
+*Features*
+- Added `excludeUrlGlobs` and renamed `globs` to `includeUrlGlobs`, the old `globs` input will still work the same.
+- Added `initialCookies` to be able to extract data behind login.
+- Added `removeElementsCssSelector` to enable custom HTML cleanup before sending to models.
+- Added support for GPT-4 Turbo model.
+- Added `skipGptGlobs` to enable not using GPT on some pages that should only be used for finding further links.
+
+*Fixes*
+- Always return `answer` in the output for consistency. It was previously sometimes missing if `jsonAnswer` was available.
+- Improve error handling for errors coming from OpenAI. The actor will now fail if user doesn't have access to a model
+
 ### 2023-12-21
 *Features*
 - Add GPT model settings `temperature`, `topP`, `frequencyPenalty` and `presencePenalty` to input
