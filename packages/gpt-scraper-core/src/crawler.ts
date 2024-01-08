@@ -88,9 +88,15 @@ export const createCrawler = async ({ input }: { input: Input }) => {
             const isFirstPage = state.pageOutputted === 0;
             if (isFirstPage) await validateInputCssSelectors(input, page);
 
+            const exitActorOnMaxPages = async () => {
+                log.info(`Reached max pages per run (${input.maxPagesPerCrawl}), exiting actor.`);
+                await Actor.exit(`Finished! Reached max pages per run (${input.maxPagesPerCrawl}).`, {
+                    timeoutSecs: 0,
+                });
+            };
+
             if (input.maxPagesPerCrawl && state.pageOutputted >= input.maxPagesPerCrawl) {
-                log.info(`Reached max pages per run (${input.maxPagesPerCrawl}), skipping URL ${url}.`);
-                await Actor.exit(`Finished! Reached max pages per run (${input.maxPagesPerCrawl}).`);
+                await exitActorOnMaxPages();
                 return;
             }
 
@@ -208,7 +214,7 @@ export const createCrawler = async ({ input }: { input: Input }) => {
             }
 
             if (input.maxPagesPerCrawl && state.pageOutputted >= input.maxPagesPerCrawl) {
-                log.info(`Reached max pages per run (${input.maxPagesPerCrawl}), skipping URL ${url}.`);
+                await exitActorOnMaxPages();
                 return;
             }
 
