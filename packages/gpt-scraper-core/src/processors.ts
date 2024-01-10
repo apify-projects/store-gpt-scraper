@@ -12,9 +12,11 @@ export const shrinkHtml = async (html: string, page: Page, removeElementsCssSele
     const stripped = await page.evaluate(
         ([unstripped, removeSelector]) => {
             const doc = new DOMParser().parseFromString(unstripped, 'text/html');
-            const elements = doc.querySelectorAll(removeSelector || '');
-            for (const element of elements) {
-                element.remove();
+            if (removeSelector) {
+                const elements = doc.querySelectorAll(removeSelector);
+                for (const element of elements) {
+                    element.remove();
+                }
             }
             return doc.documentElement.outerHTML;
         },
