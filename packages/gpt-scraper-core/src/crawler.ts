@@ -10,7 +10,7 @@ import { Input, PAGE_FORMAT } from './types/input.js';
 import { parseInput, validateInput, validateInputCssSelectors } from './input.js';
 import { NonRetryableOpenaiAPIError } from './errors.js';
 import { OpenAIModelSettings } from './types/models.js';
-import { doesUrlMatchGlobs } from './utils.js';
+import { doesUrlMatchGlobs, ERROR_TYPE } from './utils.js';
 
 interface State {
     pagesOpened: number;
@@ -87,7 +87,7 @@ export const createCrawler = async ({ input }: { input: Input }) => {
                 const state = await crawler.useState<State>(DEFAULT_STATE);
                 if (state.pagesOpened >= input.maxPagesPerCrawl) {
                     const err = new NonRetryableError('Skipping this page');
-                    err.name = 'LimitError';
+                    err.name = ERROR_TYPE.LIMIT_ERROR;
                     throw err;
                 }
             },
@@ -97,7 +97,27 @@ export const createCrawler = async ({ input }: { input: Input }) => {
             const { depth = 0 } = request.userData;
             const state = await crawler.useState<State>(DEFAULT_STATE);
             const isFirstPage = state.pagesOpened === 0;
-            state.pagesOpened++;
+            // perform an explicit check (to see if this request has already dealt with counters)
+            // by the request key, so as to avoid it succeeding in case of other requests inheriting userData with `...userData`
+            if (request.userData.wasOpenedKey !== request.uniqueKey) {
+                if (state.pagesOpened >= input.maxPagesPerCrawl) {
+                    // performing a check in the preNavigationHook is helpful to prevent extra requests,
+                    // but as the counters are incremented only later in a different async function,
+                    // a race condition may occur when multiple pages are opened at the same time;
+                    // performing a double check here, synchronously before dealing with counters just below,
+                    // will ensure that this race condition is avoided
+                    const err = new NonRetryableError('Skipping this page');
+                    err.name = ERROR_TYPE.LIMIT_ERROR;
+                    throw err;
+                }
+                // only increment this counter once for each page (via the check in the outer `if`);
+                // also, do not increment in the preNavigationHook, because the page might somehow not exist and before successful
+                // navigation should not be counted
+                state.pagesOpened++;
+                // this flag is used in the checks for reaching the limit - a page that was allowed to open will ignore
+                // the `pagesOpened` counter, which will deal with possible retries
+                request.userData.wasOpenedKey = request.uniqueKey;
+            }
             const url = request.loadedUrl || request.url;
 
             if (isFirstPage) await validateInputCssSelectors(input, page);
@@ -117,6 +137,7 @@ export const createCrawler = async ({ input }: { input: Input }) => {
                     userData: {
                         depth: depth + 1,
                     },
+                    limit: input.maxPagesPerCrawl - state.pagesOpened,
                 });
                 const enqueuedLinks = processedRequests.filter(({ wasAlreadyPresent }) => !wasAlreadyPresent);
                 const alreadyPresentLinksCount = processedRequests.length - enqueuedLinks.length;
@@ -239,7 +260,7 @@ export const createCrawler = async ({ input }: { input: Input }) => {
         },
 
         async failedRequestHandler({ request }, error: Error) {
-            if (error.name === 'LimitError') {
+            if (error.name === ERROR_TYPE.LIMIT_ERROR) {
                 return;
             }
             const errorMessage = error.message || 'no error';

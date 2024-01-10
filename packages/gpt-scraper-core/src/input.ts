@@ -6,7 +6,7 @@ import { Input } from './types/input';
 /**
  * Parses the Actor input. Throws an Actor fail if the input is invalid.
  */
-export const parseInput = async (input: Input) => {
+export const parseInput = async (input: Input): Promise<Input> => {
     // OpenAI defaults to 1, but we want the crawlers to be deterministic
     const temperatureOptions = { default: 0, range: { min: 0, max: 2 } };
     const temperature = await parseNumberInRange(input.temperature, 'temperature', temperatureOptions);
@@ -22,6 +22,9 @@ export const parseInput = async (input: Input) => {
 
     return {
         ...input,
+        // make sure to change 0 (unlimited) to a very high number, because this is used in arithmetics and comparisons
+        maxPagesPerCrawl: input.maxPagesPerCrawl || 999999,
+        maxCrawlingDepth: input.maxCrawlingDepth || 999999,
         temperature,
         topP,
         frequencyPenalty,
