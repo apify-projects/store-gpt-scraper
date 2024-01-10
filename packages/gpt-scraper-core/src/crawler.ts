@@ -84,6 +84,7 @@ export const createCrawler = async ({ input }: { input: Input }) => {
         requestList,
         preNavigationHooks: [
             async () => {
+                // We are draining the queue to speed up finishing after crawler waits after reaching maxRequestsPerCrawl
                 const state = await crawler.useState<State>(DEFAULT_STATE);
                 if (state.pagesOpened >= input.maxPagesPerCrawl) {
                     const err = new NonRetryableError('Skipping this page');
@@ -96,8 +97,18 @@ export const createCrawler = async ({ input }: { input: Input }) => {
         async requestHandler({ request, page, enqueueLinks, closeCookieModals }) {
             const { depth = 0 } = request.userData;
             const state = await crawler.useState<State>(DEFAULT_STATE);
+
             const isFirstPage = state.pagesOpened === 0;
             state.pagesOpened++;
+            // This is still a request to be fully processed, for all others we finish asap
+            // This is used on many places in this handler, it is important we check the state from this point
+            // not its value as it is changing
+            // NOTE: This can still mess up in migration because the state will increase while isRequestWithinMaxPages
+            // will not be tracked and we will abandon too early but that should be very rare
+            const isRequestWithinMaxPages = state.pagesOpened <= input.maxPagesPerCrawl;
+            if (!isRequestWithinMaxPages) {
+                return;
+            }
             const url = request.loadedUrl || request.url;
 
             if (isFirstPage) await validateInputCssSelectors(input, page);
@@ -186,6 +197,10 @@ export const createCrawler = async ({ input }: { input: Input }) => {
                 );
             }
 
+            if (!isRequestWithinMaxPages) {
+                return;
+            }
+
             try {
                 const answerResult = await model.processInstructionsWithRetry({
                     instructions: input.instructions,
@@ -221,6 +236,10 @@ export const createCrawler = async ({ input }: { input: Input }) => {
                 usdUsage: model.stats.finalCostUSD,
                 apiCallsCount: model.stats.apiCallsCount,
             });
+
+            if (!isRequestWithinMaxPages) {
+                return;
+            }
 
             // Store the results
             await Dataset.pushData({
