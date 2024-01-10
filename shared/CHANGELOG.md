@@ -5,8 +5,8 @@ This changelog tracks updates to both GTP Scraper and Extended GPT Scraper actor
 - Added `excludeUrlGlobs` and renamed `globs` to `includeUrlGlobs`, the old `globs` input will still work the same.
 - Added `initialCookies` to be able to extract data behind login.
 - Added `removeElementsCssSelector` to enable custom HTML cleanup before sending to models.
-- Added support for GPT-4 Turbo model.
-- Added `skipGptGlobs` to enable not using GPT on some pages that should only be used for finding further links.
+- Added support for GPT-4 Turbo model. (Extended GPT Scraper only)
+- Added `skipGptGlobs` to enable not using GPT on some pages that should only be used for finding further links. (Extended GPT Scraper only)
 
 *Fixes*
 - Always return `answer` in the output for consistency. It was previously sometimes missing if `jsonAnswer` was available.
