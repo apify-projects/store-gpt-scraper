@@ -10,3 +10,7 @@ const doesUrlMatchGlob = (url: string, glob: GlobInput): boolean => {
 
     return minimatch(url, globString, { nocase: true });
 };
+
+export enum ERROR_TYPE {
+    LIMIT_ERROR = 'LimitError',
+}
