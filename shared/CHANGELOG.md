@@ -1,6 +1,6 @@
 This changelog tracks updates to both GTP Scraper and Extended GPT Scraper actors.
 
-### 2023-01-08
+### 2023-01-10
 *Features*
 - Added `excludeUrlGlobs` and renamed `globs` to `includeUrlGlobs`, the old `globs` input will still work the same.
 - Added `initialCookies` to be able to extract data behind login.
