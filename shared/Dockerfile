@@ -8,6 +8,7 @@ COPY --chown=myuser package*.json ./
 # Copy package.jsons of all used workspace members
 COPY --chown=myuser "${ACTOR_PATH_IN_DOCKER_CONTEXT}/package*.json" "${ACTOR_PATH_IN_DOCKER_CONTEXT}/"
 COPY --chown=myuser packages/gpt-scraper-core/package*.json packages/gpt-scraper-core/
+COPY --chown=myuser packages/contact-scraper/package*.json packages/contact-scraper/
 
 # Install all dependencies. Don't audit to speed up the installation.
 RUN npm install --include=dev --audit=false
@@ -30,6 +31,7 @@ COPY --chown=myuser package*.json ./
 # Copy package.jsons of all workspace members
 COPY --chown=myuser "${ACTOR_PATH_IN_DOCKER_CONTEXT}/package*.json" "${ACTOR_PATH_IN_DOCKER_CONTEXT}/"
 COPY --chown=myuser packages/gpt-scraper-core/package*.json packages/gpt-scraper-core/
+COPY --chown=myuser packages/contact-scraper/package*.json packages/contact-scraper/
 
 # Install NPM packages, skip optional and development dependencies to
 # keep the image small. Avoid logging too much and print the dependency
@@ -51,6 +53,7 @@ COPY --chown=myuser packages packages/
 # Copy built JS files from the `builder` stage
 COPY --chown=myuser --from=builder "/home/myuser/${ACTOR_PATH_IN_DOCKER_CONTEXT}/dist" "${ACTOR_PATH_IN_DOCKER_CONTEXT}/dist"
 COPY --chown=myuser --from=builder /home/myuser/packages/gpt-scraper-core/dist packages/gpt-scraper-core/dist
+COPY --chown=myuser --from=builder /home/myuser/packages/contact-scraper/dist packages/contact-scraper/dist
 
 # Run the actor's start command when running this image
 ENV ACTOR_PATH_IN_DOCKER_CONTEXT="${ACTOR_PATH_IN_DOCKER_CONTEXT}"
