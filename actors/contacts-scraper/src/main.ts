@@ -16,7 +16,7 @@ const newInput = {
 
 // Transform the Actor run to apify/web-scraper
 // with the new input.
-await Actor.metamorph('drobnikj/gpt-scraper', newInput);
+await Actor.metamorph('drobnikj/extended-gpt-scraper', newInput);
 
 // The line here will never be reached, because the
 // Actor run will be interrupted.
