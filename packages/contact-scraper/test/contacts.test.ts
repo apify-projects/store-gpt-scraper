@@ -54,9 +54,18 @@ type DetailsSpec = {
     [key in keyof typeof JSON_SCHEMA['properties']]?: string[];
 }
 
-const testWholeWebsiteDetails = (jsonAnswer: any, expectedWebsiteDetails: DetailsSpec) => {
+const testWholeWebsiteDetails = (jsonAnswer: any, expectedWebsiteDetails: DetailsSpec, pageContent: string) => {
     for (const [key, urls] of Object.entries(expectedWebsiteDetails)) {
         testURLInclusion(key as keyof typeof JSON_SCHEMA['properties'], urls as string[], jsonAnswer);
+    }
+    for (const [, items] of Object.entries(jsonAnswer) as [
+        string,
+        { item: string, description: string }[],
+    ][]) {
+        for (const item of items) {
+            // avoid hallucinations by ensuring that every returned item is in the page content
+            expect(pageContent).toContain(item.item);
+        }
     }
 };
 
@@ -75,7 +84,7 @@ const testWebsite = async (url: string, spec: DetailsSpec) => {
     });
     const { jsonAnswer } = answerResult;
     expect(jsonAnswer).not.toBeNull();
-    testWholeWebsiteDetails(jsonAnswer, spec);
+    testWholeWebsiteDetails(jsonAnswer, spec, pageContent);
 };
 
 test('Scrapes contacts from https://unbounce.com/contact-us/', async () => testWebsite('https://unbounce.com/contact-us/', {
