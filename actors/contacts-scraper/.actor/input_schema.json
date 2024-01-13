@@ -1,0 +1,192 @@
+{
+    "title": "Extended GPT Scraper",
+    "type": "object",
+    "description": "The crawler scrapes pages and runs GPT model instructions for each page.",
+    "schemaVersion": 1,
+    "properties": {
+        "startUrls": {
+            "title": "Start URLs",
+            "type": "array",
+            "description": "A static list of URLs to scrape. <br><br>For details, see <a href='https://apify.com/drobnikj/extended-gpt-scraper#start-urls' target='_blank' rel='noopener'>Start URLs</a> in README.",
+            "prefill": [
+                { "url": "https://news.ycombinator.com/" }
+            ],
+            "editor": "requestListSources"
+        },
+        "includeUrlGlobs": {
+            "title": "Include URLs (globs)",
+            "type": "array",
+            "description": "Glob patterns matching URLs of pages that will be included in crawling. Combine them with the link selector to tell the scraper where to find links. Omitting the glob patterns will cause the scraper to enqueue all links matched by the link selector.",
+            "editor": "globs",
+            "default": [],
+            "prefill": []
+        },
+        "excludeUrlGlobs": {
+            "title": "Exclude URLs (globs)",
+            "type": "array",
+            "description": "Glob patterns matching URLs of pages that will be excluded from crawling. Note that this affects only links found on pages, but not Start URLs, which are always crawled.",
+            "editor": "globs",
+            "default": [],
+            "prefill": []
+        },
+        "linkSelector": {
+            "title": "Link selector",
+            "type": "string",
+            "description": "This is a CSS selector that says which links on the page (<code>&lt;a&gt;</code> elements with <code>href</code> attribute) should be followed and added to the request queue. To filter the links added to the queue, use the <b>Pseudo-URLs</b> setting.<br><br>If <b>Link selector</b> is empty, the page links are ignored.<br><br>For details, see <a href='https://apify.com/drobnikj/extended-gpt-scraper#link-selector' target='_blank' rel='noopener'>Link selector</a> in README.",
+            "editor": "textfield",
+            "prefill": "a[href]"
+        },
+        "initialCookies": {
+            "title": "Initial cookies",
+            "type": "array",
+            "description": "Cookies that will be pre-set to all pages the scraper opens. This is useful for pages that require login. The value is expected to be a JSON array of objects with `name`, `value`, 'domain' and 'path' properties. For example: `[{\"name\": \"cookieName\", \"value\": \"cookieValue\"}, \"domain\": \".domain.com\", \"path\": \"/\"}]`.\n\nYou can use the [EditThisCookie](https://chrome.google.com/webstore/detail/editthiscookie/fngmhnnpilhplaeedifhccceomclgfbg) browser extension to copy browser cookies in this format, and paste it here.",
+            "default": [],
+            "prefill": [],
+            "editor": "json"
+        },
+        "openaiApiKey": {
+            "title": "OpenAI API key",
+            "type": "string",
+            "description": "The API key for accessing OpenAI. You can get it from <a href='https://platform.openai.com/account/api-keys' target='_blank' rel='noopener'>OpenAI platform</a>.",
+            "editor": "textfield",
+            "isSecret": true
+        },
+        "instructions": {
+            "title": "Instructions for GPT",
+            "type": "string",
+            "description": "Instruct GPT how to generate text. For example: \"Summarize this page in three sentences.\"<br><br>You can instruct OpenAI to answer with \"skip this page\", which will skip the page. For example: \"Summarize this page in three sentences. If the page is about Apify Proxy, answer with 'skip this page'.\".",
+            "prefill": "Gets the post with the most points from the page and returns it as JSON in this format: \npostTitle\npostUrl\npointsCount",
+            "editor": "textarea"
+        },
+        "model": {
+            "title": "GPT model",
+            "type": "string",
+            "description": "Select a GPT model. See <a href='https://platform.openai.com/docs/models/overview' target='_blank' rel='noopener'>models overview</a>. Keep in mind that each model has different pricing and features.",
+            "editor": "select",
+            "default": "gpt-3.5-turbo",
+            "prefill": "gpt-3.5-turbo",
+            "enum": ["gpt-3.5-turbo", "gpt-3.5-turbo-16k", "gpt-4", "gpt-4-32k", "text-davinci-003", "gpt-4-turbo"],
+            "enumTitles": ["GPT-3.5 Turbo", "GPT-3.5 Turbo 16k", "GPT-4", "GPT-4 32k", "GTP-3 (davinci)", "GPT-4 Turbo (Preview)"]
+        },
+        "targetSelector": {
+            "title": "Content selector",
+            "type": "string",
+            "description": "A CSS selector of the HTML element on the page that will be used in the instruction. Instead of a whole page, you can use only part of the page. For example: \"div#content\".",
+            "editor": "textfield",
+            "prefill": ""
+        },
+        "removeElementsCssSelector": {
+            "title": "Remove HTML elements (CSS selector)",
+            "type": "string",
+            "description": "A CSS selector matching HTML elements that will be removed from the DOM, before sending it to GPT processing. This is useful to skip irrelevant page content and save on GPT input tokens. \n\nBy default, the Actor removes usually unwanted elements like scripts, styles and inline images. You can disable the removal by setting this value to some non-existent CSS selector like `dummy_keep_everything`.",
+            "editor": "textarea",
+            "default": "script, style, noscript, path, svg, xlink",
+            "prefill": "script, style, noscript, path, svg, xlink"
+        },
+        "maxCrawlingDepth": {
+            "title": "Max crawling depth",
+            "type": "integer",
+            "description": "This specifies how many links away from the <b>Start URLs</b> the scraper will descend. This value is a safeguard against infinite crawling depths for misconfigured scrapers.<br><br>If set to <code>0</code>, there is no limit.",
+            "minimum": 0,
+            "default": 0
+        },
+        "maxPagesPerCrawl": {
+            "title": "Max pages per run",
+            "type": "integer",
+            "description": "Maximum number of pages that the scraper will open. 0 means unlimited.",
+            "minimum": 0,
+            "default": 10,
+            "unit": "pages"
+        },
+        "skipGptGlobs": {
+            "title": "Skip GPT processing for Globs",
+            "type": "array",
+            "description": "This setting allows you to specify certain page URLs to skip GPT instructions for. Pages matching these glob patterns will only be crawled for links, excluding them from GPT processing. Useful for intermediary pages used for navigation or undesired content.",
+            "editor": "globs",
+            "default": [],
+            "prefill": []
+        },
+        "useStructureOutput": {
+            "sectionCaption": "Formatted output",
+            "sectionDescription": "By default, the scraper outputs text answers for each page. If you want to get data in a structured format, you can define a JSON schema. The scraper uses [function](https://platform.openai.com/docs/api-reference/chat/create#chat/create-functions), which is called for each page. The function receives the page content and returns the answer in the defined JSON format.",
+            "title": "Use JSON schema to format answer",
+            "type": "boolean",
+            "description": "If true, the answer will be transformed into a structured format based on the schema in the `jsonAnswer` attribute.",
+            "editor": "checkbox"
+        },
+        "schema": {
+            "title": "Schema",
+            "type": "object",
+            "description": "Defines how the output will be stored in structured format using the [JSON Schema[JSON Schema](https://json-schema.org/understanding-json-schema/). Keep in mind that it uses [function](https://platform.openai.com/docs/api-reference/chat/create#chat/create-functions), so by setting the description of the fields and the correct title, you can get better results.",
+            "prefill": {
+                "type": "object",
+                "properties": {
+                    "title": {
+                        "type": "string",
+                        "description": "Page title"
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "Page description"
+                    }
+                },
+                "required": ["title", "description"]
+            },
+            "editor": "json"
+        },
+        "temperature": {
+            "sectionCaption": "GPT settings",
+            "title": "Temperature",
+            "type": "string",
+            "description": "Controls randomness: Lowering results in less random completions. As the temperature approaches zero, the model will become deterministic and repetitive. For consistent results, we recommend setting the temperature to 0.",
+            "editor": "textfield",
+            "default": "0"
+        },
+        "topP": {
+            "title": "TopP",
+            "type": "string",
+            "description": "Controls diversity via nucleus sampling: 0.5 means half of all likelihood-weighted options are considered.",
+            "editor": "textfield",
+            "default": "1"
+        },
+        "frequencyPenalty": {
+            "title": "Frequency penalty",
+            "type": "string",
+            "description": "How much to penalize new tokens based on their existing frequency in the text so far. Decreases the model's likelihood to repeat the same line verbatim.",
+            "editor": "textfield",
+            "default": "0"
+        },
+        "presencePenalty": {
+            "title": "Presence penalty",
+            "type": "string",
+            "description": "How much to penalize new tokens based on whether they appear in the text so far. Increases the model's likelihood to talk about new topics.",
+            "editor": "textfield",
+            "default": "0"
+        },
+        "proxyConfiguration": {
+            "sectionCaption": "Advanced configuration",
+            "title": "Proxy configuration",
+            "type": "object",
+            "description": "This specifies the proxy servers that will be used by the scraper in order to hide its origin.<br><br>For details, see <a href='https://apify.com/drobnikj/extended-gpt-scraper#proxy-configuration' target='_blank' rel='noopener'>Proxy configuration</a> in README.",
+            "prefill": { "useApifyProxy": true },
+            "default": { "useApifyProxy": false },
+            "editor": "proxy"
+        },
+        "pageFormatInRequest": {
+            "title": "Page format in request",
+            "type": "string",
+            "description": "In what format to send the content extracted from the page to the GPT. Markdown will take less space allowing for larger requests, while HTML may help include some information like attributes that may otherwise be omitted.",
+            "enum": ["HTML", "Markdown"],
+            "enumTitles": ["HTML", "Markdown"],
+            "default": "Markdown"
+        },
+        "saveSnapshots": {
+            "title": "Save debug snapshots",
+            "type": "boolean",
+            "description": "For each page store its HTML, screenshot and parsed content (markdown/HTML as it was sent to ChatGPT) adding links to these into the output",
+            "editor": "checkbox",
+            "default": true
+        }
+    },
+    "required": ["startUrls", "instructions", "openaiApiKey", "model"]
+}
