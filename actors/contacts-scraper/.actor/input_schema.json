@@ -1,7 +1,7 @@
 {
-    "title": "Extended GPT Scraper",
+    "title": "GPT Contacts Scraper",
     "type": "object",
-    "description": "The crawler scrapes pages and runs GPT model instructions for each page.",
+    "description": "The crawler scrapes contact details from pages via GPT",
     "schemaVersion": 1,
     "properties": {
         "startUrls": {
@@ -51,13 +51,6 @@
             "editor": "textfield",
             "isSecret": true
         },
-        "instructions": {
-            "title": "Instructions for GPT",
-            "type": "string",
-            "description": "Instruct GPT how to generate text. For example: \"Summarize this page in three sentences.\"<br><br>You can instruct OpenAI to answer with \"skip this page\", which will skip the page. For example: \"Summarize this page in three sentences. If the page is about Apify Proxy, answer with 'skip this page'.\".",
-            "prefill": "Gets the post with the most points from the page and returns it as JSON in this format: \npostTitle\npostUrl\npointsCount",
-            "editor": "textarea"
-        },
         "model": {
             "title": "GPT model",
             "type": "string",
@@ -105,34 +98,6 @@
             "editor": "globs",
             "default": [],
             "prefill": []
-        },
-        "useStructureOutput": {
-            "sectionCaption": "Formatted output",
-            "sectionDescription": "By default, the scraper outputs text answers for each page. If you want to get data in a structured format, you can define a JSON schema. The scraper uses [function](https://platform.openai.com/docs/api-reference/chat/create#chat/create-functions), which is called for each page. The function receives the page content and returns the answer in the defined JSON format.",
-            "title": "Use JSON schema to format answer",
-            "type": "boolean",
-            "description": "If true, the answer will be transformed into a structured format based on the schema in the `jsonAnswer` attribute.",
-            "editor": "checkbox"
-        },
-        "schema": {
-            "title": "Schema",
-            "type": "object",
-            "description": "Defines how the output will be stored in structured format using the [JSON Schema[JSON Schema](https://json-schema.org/understanding-json-schema/). Keep in mind that it uses [function](https://platform.openai.com/docs/api-reference/chat/create#chat/create-functions), so by setting the description of the fields and the correct title, you can get better results.",
-            "prefill": {
-                "type": "object",
-                "properties": {
-                    "title": {
-                        "type": "string",
-                        "description": "Page title"
-                    },
-                    "description": {
-                        "type": "string",
-                        "description": "Page description"
-                    }
-                },
-                "required": ["title", "description"]
-            },
-            "editor": "json"
         },
         "temperature": {
             "sectionCaption": "GPT settings",
