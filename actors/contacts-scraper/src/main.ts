@@ -13,7 +13,15 @@ const newInput = {
     useStructureOutput: true,
     schema: JSON_SCHEMA,
     model: MODEL_NAME,
-    ...MODEL_SETTINGS,
+    ...Object.fromEntries(
+        Object.entries(
+            MODEL_SETTINGS,
+        ).map(([key, value]) => [
+            key,
+            // input schema of extended-gpt-scraper requires string values
+            value.toString(),
+        ]),
+    ),
 };
 
 // Transform the Actor run to apify/web-scraper
