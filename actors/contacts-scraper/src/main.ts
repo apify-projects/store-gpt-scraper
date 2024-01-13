@@ -1,5 +1,5 @@
 import { Actor } from 'apify';
-import { INTRO_PROMPT, JSON_SCHEMA } from '@packages/contact-scraper';
+import { INTRO_PROMPT, JSON_SCHEMA, MODEL_NAME, MODEL_SETTINGS } from '@packages/contact-scraper';
 
 await Actor.init();
 
@@ -12,6 +12,8 @@ const newInput = {
     instructions: INTRO_PROMPT,
     useStructureOutput: true,
     schema: JSON_SCHEMA,
+    model: MODEL_NAME,
+    ...MODEL_SETTINGS,
 };
 
 // Transform the Actor run to apify/web-scraper

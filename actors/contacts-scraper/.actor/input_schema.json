@@ -51,16 +51,6 @@
             "editor": "textfield",
             "isSecret": true
         },
-        "model": {
-            "title": "GPT model",
-            "type": "string",
-            "description": "Select a GPT model. See <a href='https://platform.openai.com/docs/models/overview' target='_blank' rel='noopener'>models overview</a>. Keep in mind that each model has different pricing and features.",
-            "editor": "select",
-            "default": "gpt-3.5-turbo",
-            "prefill": "gpt-3.5-turbo",
-            "enum": ["gpt-3.5-turbo", "gpt-3.5-turbo-16k", "gpt-4", "gpt-4-32k", "text-davinci-003", "gpt-4-turbo"],
-            "enumTitles": ["GPT-3.5 Turbo", "GPT-3.5 Turbo 16k", "GPT-4", "GPT-4 32k", "GTP-3 (davinci)", "GPT-4 Turbo (Preview)"]
-        },
         "targetSelector": {
             "title": "Content selector",
             "type": "string",
@@ -99,35 +89,6 @@
             "default": [],
             "prefill": []
         },
-        "temperature": {
-            "sectionCaption": "GPT settings",
-            "title": "Temperature",
-            "type": "string",
-            "description": "Controls randomness: Lowering results in less random completions. As the temperature approaches zero, the model will become deterministic and repetitive. For consistent results, we recommend setting the temperature to 0.",
-            "editor": "textfield",
-            "default": "0"
-        },
-        "topP": {
-            "title": "TopP",
-            "type": "string",
-            "description": "Controls diversity via nucleus sampling: 0.5 means half of all likelihood-weighted options are considered.",
-            "editor": "textfield",
-            "default": "1"
-        },
-        "frequencyPenalty": {
-            "title": "Frequency penalty",
-            "type": "string",
-            "description": "How much to penalize new tokens based on their existing frequency in the text so far. Decreases the model's likelihood to repeat the same line verbatim.",
-            "editor": "textfield",
-            "default": "0"
-        },
-        "presencePenalty": {
-            "title": "Presence penalty",
-            "type": "string",
-            "description": "How much to penalize new tokens based on whether they appear in the text so far. Increases the model's likelihood to talk about new topics.",
-            "editor": "textfield",
-            "default": "0"
-        },
         "proxyConfiguration": {
             "sectionCaption": "Advanced configuration",
             "title": "Proxy configuration",
@@ -153,5 +114,5 @@
             "default": true
         }
     },
-    "required": ["startUrls", "openaiApiKey", "model"]
+    "required": ["startUrls", "openaiApiKey"]
 }

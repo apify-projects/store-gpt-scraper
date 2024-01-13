@@ -7,7 +7,7 @@ export const JSON_SCHEMA = {
             items: {
                 type: 'object',
                 properties: {
-                    email: {
+                    item: {
                         type: 'string',
                         description: 'Email address',
                     },
@@ -23,7 +23,7 @@ export const JSON_SCHEMA = {
             items: {
                 type: 'object',
                 properties: {
-                    phone: {
+                    item: {
                         type: 'string',
                         description: 'Phone number',
                     },
@@ -39,7 +39,7 @@ export const JSON_SCHEMA = {
             items: {
                 type: 'object',
                 properties: {
-                    url: {
+                    item: {
                         type: 'string',
                         description: 'LinkedIn URL',
                     },
@@ -55,7 +55,7 @@ export const JSON_SCHEMA = {
             items: {
                 type: 'object',
                 properties: {
-                    url: {
+                    item: {
                         type: 'string',
                         description: 'Twitter URL',
                     },
@@ -71,7 +71,7 @@ export const JSON_SCHEMA = {
             items: {
                 type: 'object',
                 properties: {
-                    url: {
+                    item: {
                         type: 'string',
                         description: 'Instagram URL',
                     },
@@ -87,7 +87,7 @@ export const JSON_SCHEMA = {
             items: {
                 type: 'object',
                 properties: {
-                    url: {
+                    item: {
                         type: 'string',
                         description: 'Facebook URL',
                     },
@@ -103,7 +103,7 @@ export const JSON_SCHEMA = {
             items: {
                 type: 'object',
                 properties: {
-                    url: {
+                    item: {
                         type: 'string',
                         description: 'YouTube URL',
                     },
@@ -119,7 +119,7 @@ export const JSON_SCHEMA = {
             items: {
                 type: 'object',
                 properties: {
-                    url: {
+                    item: {
                         type: 'string',
                         description: 'Pinterest URL',
                     },
@@ -135,7 +135,7 @@ export const JSON_SCHEMA = {
             items: {
                 type: 'object',
                 properties: {
-                    url: {
+                    item: {
                         type: 'string',
                         description: 'Discord URL',
                     },
@@ -151,7 +151,7 @@ export const JSON_SCHEMA = {
             items: {
                 type: 'object',
                 properties: {
-                    url: {
+                    item: {
                         type: 'string',
                         description: 'TikTok URL',
                     },
