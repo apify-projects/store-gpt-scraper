@@ -153,5 +153,5 @@
             "default": true
         }
     },
-    "required": ["startUrls", "instructions", "openaiApiKey", "model"]
+    "required": ["startUrls", "openaiApiKey", "model"]
 }
