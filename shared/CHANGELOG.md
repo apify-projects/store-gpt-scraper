@@ -1,5 +1,9 @@
 This changelog tracks updates to both GTP Scraper and Extended GPT Scraper actors.
 
+### 2023-01-21
+*Fixes*
+- Fixed a bug where the Actor would fail on "repetitive patterns in prompt" error from OpenAI. The Actor will now gracefully skip GPT processing for the webpages that trigger the error.
+
 ### 2023-01-10
 *Features*
 - Added `excludeUrlGlobs` and renamed `globs` to `includeUrlGlobs`, the old `globs` input will still work the same.
