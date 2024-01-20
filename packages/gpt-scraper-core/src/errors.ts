@@ -1,5 +1,12 @@
 /* eslint-disable max-classes-per-file */
 
+export const REPETITIVE_PROMPT_ERROR_MESSAGE = 'OpenAI has rejected a page prompt because it contains repetitive '
+    + 'patterns. This usually happens when the website you are trying to scrape has some repetitive content. Please '
+    + 'try to remove the repetitive content via the `removeElementsCssSelector` input option. Skipping GPT processing '
+    + 'for this page!';
+
+export const ERROR_OCCURRED_MESSAGE = "An error has occurred in your run. Please check the run's logs for more info.";
+
 /**
  * Error from OpenAI API.
  */
@@ -17,9 +24,14 @@ export class OpenaiAPIError extends Error {
 }
 
 /**
- * Error from OpenAI API. This error indicates that the request should not be retried.
+ * Error from OpenAI API. Indicates that the request should not be retried.
  */
 export class NonRetryableOpenaiAPIError extends OpenaiAPIError {}
+
+/**
+ * Error from OpenAI API. Indicates that we should exit the Actor with it.
+ */
+export class OpenaiAPIErrorToExitActor extends NonRetryableOpenaiAPIError {}
 
 /**
  * Error from OpenAI API. Indicates that the request should be retried after a while.
