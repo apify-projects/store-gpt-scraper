@@ -3,7 +3,8 @@ import { log, sleep } from 'crawlee';
 import { ChatOpenAI } from 'langchain/chat_models/openai';
 import { OpenAI } from 'langchain/llms/openai';
 import { LLMResult } from 'langchain/schema';
-import { NonRetryableOpenaiAPIError, OpenaiAPIError, RateLimitedError } from '../errors.js';
+import { REPETITIVE_PROMPT_ERROR_MESSAGE } from '../constants.js';
+import { NonRetryableOpenaiAPIError, OpenaiAPIError, OpenaiAPIErrorToExitActor, RateLimitedError } from '../errors.js';
 import { tryToParseJsonFromString } from '../processors.js';
 import { ProcessInstructionsOptions } from '../types/model.js';
 import { OpenAIModelSettings } from '../types/models.js';
@@ -18,12 +19,12 @@ const MAX_GPT_RETRIES = 8;
  *
  * see OpenAI errors documentation: https://platform.openai.com/docs/guides/error-codes/api-errors
  */
-const wrapInOpenaiError = (error: any): OpenaiAPIError | NonRetryableOpenaiAPIError | RateLimitedError => {
+const wrapInOpenaiError = (error: any): OpenaiAPIError => {
     const errorMessage = error.error?.message || error.code || error.message;
 
     // The error structure is completely different for insufficient quota errors. We need to handle it separately.
     if (error.name === 'InsufficientQuotaError') {
-        return new NonRetryableOpenaiAPIError(errorMessage);
+        return new OpenaiAPIErrorToExitActor(errorMessage);
     }
 
     const isOpenAIServerError = [500, 503].includes(error.status);
@@ -31,7 +32,10 @@ const wrapInOpenaiError = (error: any): OpenaiAPIError | NonRetryableOpenaiAPIEr
 
     if (error.status === 429) return new RateLimitedError(errorMessage);
 
-    return new NonRetryableOpenaiAPIError(errorMessage, error.status);
+    const isRepetitivePromptError = error.status === 400 && errorMessage.includes('repetitive patterns');
+    if (isRepetitivePromptError) return new NonRetryableOpenaiAPIError(REPETITIVE_PROMPT_ERROR_MESSAGE);
+
+    return new OpenaiAPIErrorToExitActor(errorMessage, error.status);
 };
 
 export class OpenAIModelHandler extends GeneralModelHandler<OpenAIModelSettings> {

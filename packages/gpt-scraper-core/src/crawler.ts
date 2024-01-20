@@ -8,7 +8,7 @@ import { getModelByName } from './models/models.js';
 import { getNumberOfTextTokens, htmlToMarkdown, maybeShortsTextByTokenLength, shrinkHtml } from './processors.js';
 import { Input, PAGE_FORMAT } from './types/input.js';
 import { parseInput, validateInput, validateInputCssSelectors } from './input.js';
-import { NonRetryableOpenaiAPIError } from './errors.js';
+import { ERROR_OCCURRED_MESSAGE, NonRetryableOpenaiAPIError, OpenaiAPIErrorToExitActor } from './errors.js';
 import { OpenAIModelSettings } from './types/models.js';
 import { doesUrlMatchGlobs, ERROR_TYPE } from './utils.js';
 
@@ -219,8 +219,12 @@ export const createCrawler = async ({ input }: { input: Input }) => {
                 jsonAnswer = answerResult.jsonAnswer;
                 model.updateApiCallUsage(answerResult.usage);
             } catch (error: any) {
-                if (error instanceof NonRetryableOpenaiAPIError) {
+                if (error instanceof OpenaiAPIErrorToExitActor) {
                     throw await Actor.fail(error.message);
+                }
+                if (error instanceof NonRetryableOpenaiAPIError) {
+                    await Actor.setStatusMessage(ERROR_OCCURRED_MESSAGE, { level: 'WARNING' });
+                    return log.warning(error.message, { url });
                 }
                 throw error;
             }
