@@ -71,7 +71,7 @@
             "type": "integer",
             "description": "Specifies how many links away from <b>Start URLs</b> the scraper will descend. This value is a safeguard against infinite crawling depths for misconfigured scrapers.<br><br>If set to <code>0</code>, there is no limit.",
             "minimum": 0,
-            "default": 0
+            "default": 99999999
         },
         "maxPagesPerCrawl": {
             "title": "Max pages per run",
