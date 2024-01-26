@@ -1,5 +1,9 @@
 This changelog tracks updates to both GTP Scraper and Extended GPT Scraper actors.
 
+### 2023-01-26
+*Fixes*
+- Fixed "max pages per run" not working correctly on specific websites.
+
 ### 2023-01-21
 *Fixes*
 - Fixed a bug where the Actor would fail on "repetitive patterns in prompt" error from OpenAI. The Actor will now gracefully skip GPT processing for the webpages that trigger the error.
