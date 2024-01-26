@@ -137,7 +137,6 @@ export const createCrawler = async ({ input }: { input: Input }) => {
                     userData: {
                         depth: depth + 1,
                     },
-                    limit: input.maxPagesPerCrawl - state.pagesOpened,
                 });
                 const enqueuedLinks = processedRequests.filter(({ wasAlreadyPresent }) => !wasAlreadyPresent);
                 const alreadyPresentLinksCount = processedRequests.length - enqueuedLinks.length;
