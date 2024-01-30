@@ -1,0 +1,18 @@
+{
+	"actorSpecification": 1,
+	"name": "gpt-scraper",
+	"title": "GPT Scraper",
+	"description": "Crawler uses OpenAI API",
+	"version": "0.0",
+	"meta": {
+		"templateId": "ts-crawlee-playwright-chrome"
+	},
+	"input": "./input_schema.json",
+	"readme": "./README.md",
+	"dockerfile": "../../../shared/Dockerfile",
+    "changelog":"../../../shared/CHANGELOG.md",
+    "storages": {
+        "dataset": "../../../shared/dataset_schema.json"
+    },
+	"dockerContextDir": "../../.."
+}
