@@ -1,5 +1,5 @@
 {
-    "name": "@actors/extended-gpt-scraper",
+    "name": "@actors/contact-gpt-scraper",
     "description": "Example TypeScript actor in a monorepo",
     "version": "1.0.0",
     "type": "module",
