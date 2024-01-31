@@ -1,5 +1,9 @@
 This changelog tracks updates to both GTP Scraper and Extended GPT Scraper actors.
 
+# 2023-01-31
+*Fixes*
+- Eliminated the bug, when on some sites that contain erronous javascript the scraper would fail
+
 ### 2023-01-26
 *Fixes*
 - Fixed "max pages per run" not working correctly on specific websites.
