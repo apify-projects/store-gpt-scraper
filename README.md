@@ -10,7 +10,7 @@ This repository contains two Actors: GPT Scraper and Extended GPT Scraper and a 
 This is package contains the core functionality for both Actors.
 The package's source code can be found under the `packages/gpt-scraper-core` directory.
 
-## Extended GPT Scraper
+## Extended GPT Scraper 
 
 This Actor's source code can be found under the `actors/extended-gpt-scraper` directory.
 It has all features and requires an OpenAI API key on Input.
