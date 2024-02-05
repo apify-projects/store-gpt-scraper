@@ -92,7 +92,16 @@ export const createCrawler = async ({ input }: { input: Input }) => {
                 }
             },
         ],
-
+        postNavigationHooks: [
+            async ({ page }) => {
+                // see https://github.com/apify/crawlee/issues/2314
+                // will solve client-side redirects through meta tags
+                await page.waitForSelector('body', {
+                    state: 'attached',
+                    timeout: 60_000,
+                });
+            },
+        ],
         async requestHandler({ request, page, enqueueLinks, closeCookieModals }) {
             const { depth = 0 } = request.userData;
             const state = await crawler.useState<State>(DEFAULT_STATE);

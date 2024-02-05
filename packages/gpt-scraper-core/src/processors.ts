@@ -15,7 +15,13 @@ export const shrinkHtml = async (html: string, page: Page, removeElementsCssSele
             if (removeSelector) {
                 const elements = doc.querySelectorAll(removeSelector);
                 for (const element of elements) {
-                    element.remove();
+                    // there have been some cases when the page's own scripts cause errors and running this line
+                    // causes them to reemerge, so what in try/cartch
+                    try {
+                        element.remove();
+                    } catch (err) {
+                        /* ignore */
+                    }
                 }
             }
             return doc.documentElement.outerHTML;
@@ -34,7 +40,7 @@ export const htmlToMarkdown = (html: string) => {
     return htmlToMarkdownProcessor.turndown(html);
 };
 
-const chunkText = (text:string, maxLength: number) => {
+const chunkText = (text: string, maxLength: number) => {
     const numChunks = Math.ceil(text.length / maxLength);
     const chunks = new Array(numChunks);
 
