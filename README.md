@@ -1,4 +1,4 @@
-# GPT Scraper
+# GPT Scraper 
 
 This repository contains two Actors: GPT Scraper and Extended GPT Scraper and a shared packages for them.
 
