@@ -36,8 +36,8 @@ const OPEN_AI_MODELS: ModelsGroup = {
         maxTokens: 4097,
         interface: 'chat',
         cost: {
-            input: 0.0015,
-            output: 0.002,
+            input: 0.0005,
+            output: 0.0015,
         },
     },
     'gpt-3.5-turbo-16k': {
