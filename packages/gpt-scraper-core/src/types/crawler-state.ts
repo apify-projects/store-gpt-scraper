@@ -1,6 +1,6 @@
-import { Input } from './input';
+import { Config } from './config';
 
 export interface CrawlerState {
-    pageOutputted: number;
-    config: Input;
+    pagesOpened: number;
+    config: Config;
 }

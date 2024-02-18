@@ -71,8 +71,8 @@ export const parseConfiguration = async (input: Input): Promise<Config> => {
 /**
  * Css selectors need to be validated in the browser context. We do the validation on the first page.
  */
-export const validateInputCssSelectors = async (input: Input, page: Page) => {
-    const { linkSelector, targetSelector, removeElementsCssSelector } = input;
+export const validateInputCssSelectors = async (config: Config, page: Page) => {
+    const { linkSelector, targetSelector, removeElementsCssSelector } = config;
 
     await validateInputCssSelector(linkSelector, 'linkSelector', page);
     await validateInputCssSelector(targetSelector, 'targetSelector', page);
