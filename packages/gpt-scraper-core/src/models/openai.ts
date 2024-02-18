@@ -3,7 +3,15 @@ import { log, sleep } from 'crawlee';
 import { ChatOpenAI } from 'langchain/chat_models/openai';
 import { OpenAI } from 'langchain/llms/openai';
 import { LLMResult } from 'langchain/schema';
-import { NonRetryableOpenaiAPIError, OpenaiAPIError, OpenaiAPIErrorToExitActor, RateLimitedError, REPETITIVE_PROMPT_ERROR_MESSAGE } from '../errors.js';
+import {
+    DESCRIPTION_LENGTH_ERROR,
+    DESCRIPTION_LENGTH_ERROR_LOG_MESSAGE,
+    NonRetryableOpenaiAPIError,
+    OpenaiAPIError,
+    OpenaiAPIErrorToExitActor,
+    REPETITIVE_PROMPT_ERROR_MESSAGE,
+    RateLimitedError,
+} from '../errors.js';
 import { tryToParseJsonFromString } from '../processors.js';
 import { ProcessInstructionsOptions } from '../types/model.js';
 import { OpenAIModelSettings } from '../types/models.js';
@@ -33,6 +41,11 @@ const wrapInOpenaiError = (error: any): OpenaiAPIError => {
 
     const isRepetitivePromptError = error.status === 400 && errorMessage.includes('repetitive patterns');
     if (isRepetitivePromptError) return new NonRetryableOpenaiAPIError(REPETITIVE_PROMPT_ERROR_MESSAGE);
+
+    const isDescriptionLengthError = error.status === 400 && errorMessage.endsWith(DESCRIPTION_LENGTH_ERROR);
+    if (isDescriptionLengthError) {
+        return new NonRetryableOpenaiAPIError(DESCRIPTION_LENGTH_ERROR_LOG_MESSAGE, error.status);
+    }
 
     return new OpenaiAPIErrorToExitActor(errorMessage, error.status);
 };
