@@ -9,7 +9,7 @@ import { ERROR_TYPE } from './utils.js';
 export const createCrawler = async ({ input }: { input: Input }) => {
     const config = await parseConfiguration(input);
 
-    const { maxPagesPerCrawl, requestList, proxyConfiguration } = config;
+    const { maxPagesPerCrawl, proxyConfiguration, requests } = config;
 
     const crawler = new PlaywrightCrawler({
         launchContext: {
@@ -22,7 +22,6 @@ export const createCrawler = async ({ input }: { input: Input }) => {
         requestHandlerTimeoutSecs: 3 * 60,
         proxyConfiguration,
         maxRequestsPerCrawl: maxPagesPerCrawl,
-        requestList,
         requestHandler: crawlRoute,
         preNavigationHooks: [
             async () => {
@@ -68,6 +67,8 @@ export const createCrawler = async ({ input }: { input: Input }) => {
 
     const defaultCrawlerState = { pagesOpened: 0, config };
     await crawler.useState<CrawlerState>(defaultCrawlerState);
+
+    await crawler.addRequests(requests);
 
     // @ts-expect-error patching
     const oldCrawlerLogError = crawler.log.error.bind(crawler.log);

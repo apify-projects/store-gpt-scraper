@@ -44,7 +44,7 @@ const wrapInOpenaiError = (error: any): OpenaiAPIError => {
 
     const isDescriptionLengthError = error.status === 400 && errorMessage.endsWith(DESCRIPTION_LENGTH_ERROR);
     if (isDescriptionLengthError) {
-        return new NonRetryableOpenaiAPIError(DESCRIPTION_LENGTH_ERROR_LOG_MESSAGE, error.status);
+        return new OpenaiAPIErrorToExitActor(DESCRIPTION_LENGTH_ERROR_LOG_MESSAGE, error.status);
     }
 
     return new OpenaiAPIErrorToExitActor(errorMessage, error.status);

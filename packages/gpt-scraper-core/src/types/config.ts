@@ -1,5 +1,5 @@
 import { AnySchema } from 'ajv';
-import { Cookie, GlobInput, KeyValueStore, ProxyConfiguration, RequestList } from 'crawlee';
+import { Cookie, GlobInput, ProxyConfiguration, Request } from 'crawlee';
 import { OpenAIModelHandler } from '../models/openai';
 import { PAGE_FORMAT } from './input';
 import { OpenAIModelSettings } from './models';
@@ -12,7 +12,6 @@ export interface Config {
     includeUrlGlobs?: GlobInput[];
     initialCookies?: Cookie[];
     instructions: string;
-    kvStore: KeyValueStore;
     linkSelector?: string;
     maxCrawlingDepth: number;
     maxPagesPerCrawl: number;
@@ -21,7 +20,7 @@ export interface Config {
     pageFormat: PAGE_FORMAT;
     proxyConfiguration?: ProxyConfiguration;
     removeElementsCssSelector?: string;
-    requestList: RequestList;
+    requests: Request[];
     saveSnapshots: boolean;
     schema?: AnySchema;
     schemaDescription: string;
