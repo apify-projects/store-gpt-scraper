@@ -31,7 +31,7 @@ export const parseConfiguration = async (input: Input): Promise<Config> => {
     const model = getModelByName(input.model);
     if (!model) throw await Actor.fail(`Model ${input.model} is not supported`);
 
-    const schema = await parseSchemaConfig(input, model);
+    const { schema, schemaDescription } = await parseSchemaConfig(input, model);
 
     const modelSettings = await parseOpenaiModelSettings(input);
 
@@ -63,6 +63,7 @@ export const parseConfiguration = async (input: Input): Promise<Config> => {
         requestList,
         saveSnapshots,
         schema,
+        schemaDescription,
         skipGptGlobs,
         targetSelector,
     };
@@ -89,7 +90,13 @@ const parseSchemaConfig = async (input: Input, model: OpenAIModelHandler) => {
         log.warning(`Schema is not supported for model ${model.modelConfig.modelName}! Ignoring schema.`);
     }
 
-    return schema;
+    const useInstructionsForSchemaDescription = useSchema && !input.schemaDescription && input.instructions;
+    if (useInstructionsForSchemaDescription) {
+        log.warning(`Schema description is not set, using instructions as schema description.`);
+    }
+    const schemaDescription = input.schemaDescription || input.instructions;
+
+    return { schema, schemaDescription };
 };
 
 /**

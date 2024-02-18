@@ -29,6 +29,7 @@ export const crawlRoute = async (context: PlaywrightCrawlingContext) => {
         saveSnapshots,
         kvStore,
         schema,
+        schemaDescription,
         modelSettings,
     } = state.config;
 
@@ -147,6 +148,7 @@ export const crawlRoute = async (context: PlaywrightCrawlingContext) => {
             instructions,
             content: pageContent,
             schema,
+            schemaDescription,
             modelSettings,
             apifyClient: Actor.apifyClient,
         });

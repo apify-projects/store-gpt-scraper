@@ -39,7 +39,7 @@ const wrapInOpenaiError = (error: any): OpenaiAPIError => {
 
 export class OpenAIModelHandler extends GeneralModelHandler<OpenAIModelSettings> {
     async processInstructions(options: ProcessInstructionsOptions<OpenAIModelSettings>) {
-        const { instructions, content, schema, modelSettings } = options;
+        const { instructions, content, schema, schemaDescription, modelSettings } = options;
         log.debug(`Calling Openai API with model ${this.modelConfig.modelName}`);
 
         const handleLLMEndCallback = this.handleLLMEndCallbackHandler();
@@ -53,7 +53,7 @@ export class OpenAIModelHandler extends GeneralModelHandler<OpenAIModelSettings>
         const baseModel = isChatModel ? new ChatOpenAI(modelOptions) : new OpenAI(modelOptions);
 
         const useSchema = baseModel instanceof ChatOpenAI && schema;
-        const model = useSchema ? this.buildModelWithSchemaFunction(baseModel, instructions, schema) : baseModel;
+        const model = useSchema ? this.buildModelWithSchemaFunction(baseModel, schemaDescription, schema) : baseModel;
         const chain = this.buildLLMChain(model);
 
         const result = await chain.call({ instructions, content });
@@ -107,11 +107,11 @@ export class OpenAIModelHandler extends GeneralModelHandler<OpenAIModelSettings>
      * Builds the model with the given schema function. Functions are a more direct way of extracting data to JSON on OpenAI.
      * - It's not guaranteed that the function will return JSON, so we need to properly parse it.
      */
-    private buildModelWithSchemaFunction = (model: ChatOpenAI, instructions: string, schema: AnySchema) => {
+    private buildModelWithSchemaFunction = (model: ChatOpenAI, description: string, schema: AnySchema) => {
         const parameters = schema as Record<string, unknown>;
 
         return model.bind({
-            functions: [{ name: 'extract_function', description: instructions, parameters }],
+            functions: [{ name: 'extract_function', description, parameters }],
             function_call: { name: 'extract_function' },
         });
     };

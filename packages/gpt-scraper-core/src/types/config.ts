@@ -24,6 +24,7 @@ export interface Config {
     requestList: RequestList;
     saveSnapshots: boolean;
     schema?: AnySchema;
+    schemaDescription: string;
     skipGptGlobs?: GlobInput[];
     targetSelector?: string;
 }
