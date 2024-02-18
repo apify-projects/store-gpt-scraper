@@ -1,15 +1,10 @@
 import { Actor } from 'apify';
-import { AnySchema } from 'ajv';
-import { PlaywrightCrawler, Dataset, log, RequestList, utils, KeyValueStore, NonRetryableError } from 'crawlee';
+import { PlaywrightCrawler, Dataset, log, utils, NonRetryableError } from 'crawlee';
 import { createRequestDebugInfo } from '@crawlee/utils';
-import Ajv2020 from 'ajv/dist/2020.js';
-import addFormats from 'ajv-formats';
-import { getModelByName } from './models/models.js';
 import { getNumberOfTextTokens, htmlToMarkdown, maybeShortsTextByTokenLength, shrinkHtml } from './processors.js';
 import { Input, PAGE_FORMAT } from './types/input.js';
-import { parseInput, validateInput, validateInputCssSelectors } from './input.js';
+import { parseConfiguration, validateInputCssSelectors } from './configuration.js';
 import { ERROR_OCCURRED_MESSAGE, NonRetryableOpenaiAPIError, OpenaiAPIErrorToExitActor } from './errors.js';
-import { OpenAIModelSettings } from './types/models.js';
 import { doesUrlMatchGlobs, ERROR_TYPE } from './utils.js';
 
 interface State {
@@ -19,56 +14,28 @@ const DEFAULT_STATE: State = {
     pagesOpened: 0,
 };
 
-/**
- * Parse and validate JSON schema, if valid return it, otherwise failed actor.
- * @param schema
- */
-const validateSchemaOrFail = async (schema: AnySchema | undefined): Promise<AnySchema | undefined> => {
-    if (!schema) {
-        await Actor.fail('Schema is required when using "Use JSON schema to format answer" option. Provide the correct JSON schema or disable this option.');
-        return;
-    }
-    try {
-        const validator = new Ajv2020();
-        addFormats(validator);
-        validator.compile(schema);
-        return schema;
-    } catch (e: any) {
-        log.error(`Schema is not valid: ${e.message}`, { error: e });
-        await Actor.fail('Schema is not valid. Go to Actor run log, '
-            + 'where you can find error details or disable "Use JSON schema to format answer" option.');
-    }
-    return undefined;
-};
-
 export const createCrawler = async ({ input }: { input: Input }) => {
-    input = await parseInput(input);
-    await validateInput(input);
+    const config = await parseConfiguration(input);
 
-    const model = getModelByName(input.model);
-    if (!model) throw await Actor.fail(`Model ${input.model} is not supported`);
-
-    const requestList = await RequestList.open('start-urls', input.startUrls);
-
-    // Validate schema
-    const { useStructureOutput, schema: uncheckJsonSchema } = input;
-    const schema = useStructureOutput ? await validateSchemaOrFail(uncheckJsonSchema) : undefined;
-
-    if (schema && model.modelConfig.interface === 'text') {
-        log.warning(`Schema is not supported for model ${model.modelConfig.modelName}! Ignoring schema.`);
-    }
-
-    const pageFormat = input.pageFormatInRequest || PAGE_FORMAT.MARKDOWN;
-    const saveSnapshots = input.saveSnapshots ?? true;
-    const kvStore = await KeyValueStore.open();
-
-    const modelSettings: OpenAIModelSettings = {
-        openAIApiKey: input.openaiApiKey,
-        temperature: input.temperature,
-        topP: input.topP,
-        frequencyPenalty: input.frequencyPenalty,
-        presencePenalty: input.presencePenalty,
-    };
+    const {
+        model,
+        schema,
+        maxPagesPerCrawl,
+        maxCrawlingDepth,
+        includeUrlGlobs,
+        excludeUrlGlobs,
+        removeElementsCssSelector,
+        targetSelector,
+        linkSelector,
+        skipGptGlobs,
+        modelSettings,
+        instructions,
+        pageFormat,
+        saveSnapshots,
+        requestList,
+        kvStore,
+        proxyConfiguration,
+    } = config;
 
     const crawler = new PlaywrightCrawler({
         launchContext: {
@@ -79,13 +46,13 @@ export const createCrawler = async ({ input }: { input: Input }) => {
         },
         retryOnBlocked: true,
         requestHandlerTimeoutSecs: 3 * 60,
-        proxyConfiguration: input.proxyConfiguration && await Actor.createProxyConfiguration(input.proxyConfiguration),
-        maxRequestsPerCrawl: input.maxPagesPerCrawl,
+        proxyConfiguration,
+        maxRequestsPerCrawl: maxPagesPerCrawl,
         requestList,
         preNavigationHooks: [
             async () => {
                 const state = await crawler.useState<State>(DEFAULT_STATE);
-                if (state.pagesOpened >= input.maxPagesPerCrawl) {
+                if (state.pagesOpened >= maxPagesPerCrawl) {
                     const err = new NonRetryableError('Skipping this page');
                     err.name = ERROR_TYPE.LIMIT_ERROR;
                     throw err;
@@ -109,7 +76,7 @@ export const createCrawler = async ({ input }: { input: Input }) => {
             // perform an explicit check (to see if this request has already dealt with counters)
             // by the request key, so as to avoid it succeeding in case of other requests inheriting userData with `...userData`
             if (request.userData.wasOpenedKey !== request.uniqueKey) {
-                if (state.pagesOpened >= input.maxPagesPerCrawl) {
+                if (state.pagesOpened >= maxPagesPerCrawl) {
                     // performing a check in the preNavigationHook is helpful to prevent extra requests,
                     // but as the counters are incremented only later in a different async function,
                     // a race condition may occur when multiple pages are opened at the same time;
@@ -137,12 +104,12 @@ export const createCrawler = async ({ input }: { input: Input }) => {
 
             // Enqueue links
             // If maxCrawlingDepth is not set or 0 the depth is infinite.
-            const isDepthLimitReached = !!input.maxCrawlingDepth && depth >= input.maxCrawlingDepth;
-            if (input.linkSelector && input?.includeUrlGlobs?.length && !isDepthLimitReached) {
+            const isDepthLimitReached = !!maxCrawlingDepth && depth >= maxCrawlingDepth;
+            if (linkSelector && includeUrlGlobs?.length && !isDepthLimitReached) {
                 const { processedRequests } = await enqueueLinks({
-                    selector: input.linkSelector,
-                    globs: input.includeUrlGlobs,
-                    exclude: input.excludeUrlGlobs,
+                    selector: linkSelector,
+                    globs: includeUrlGlobs,
+                    exclude: excludeUrlGlobs,
                     userData: {
                         depth: depth + 1,
                     },
@@ -155,7 +122,7 @@ export const createCrawler = async ({ input }: { input: Input }) => {
                 );
             }
 
-            const skipGptProcessing = input.skipGptGlobs && doesUrlMatchGlobs(url, input.skipGptGlobs);
+            const skipGptProcessing = skipGptGlobs && doesUrlMatchGlobs(url, skipGptGlobs);
             if (skipGptProcessing) {
                 log.info(`Skipping page from GPT processing because it matched 'skipGptGlobs', crawling only.`, { url });
                 return;
@@ -163,21 +130,21 @@ export const createCrawler = async ({ input }: { input: Input }) => {
 
             // A function to be evaluated by Playwright within the browser context.
             let originContentHtml;
-            if (input.targetSelector) {
+            if (targetSelector) {
                 try {
-                    originContentHtml = await page.$eval(input.targetSelector, (el) => el.innerHTML);
+                    originContentHtml = await page.$eval(targetSelector, (el) => el.innerHTML);
                 } catch (err) {
-                    log.error(`Cannot find targetSelector ${input.targetSelector} on ${url}, skipping this page.`, { err });
+                    log.error(`Cannot find targetSelector ${targetSelector} on ${url}, skipping this page.`, { err });
                     return;
                 }
             } else {
                 originContentHtml = await page.content();
             }
 
-            const shrunkHtml = await shrinkHtml(originContentHtml, page, input.removeElementsCssSelector);
+            const shrunkHtml = await shrinkHtml(originContentHtml, page, removeElementsCssSelector);
             const originPageContent = pageFormat === PAGE_FORMAT.MARKDOWN ? htmlToMarkdown(shrunkHtml) : shrunkHtml;
 
-            const instructionTokenLength = getNumberOfTextTokens(input.instructions);
+            const instructionTokenLength = getNumberOfTextTokens(instructions);
 
             let answer = '';
             let jsonAnswer: null | object;
@@ -217,7 +184,7 @@ export const createCrawler = async ({ input }: { input: Input }) => {
 
             try {
                 const answerResult = await model.processInstructionsWithRetry({
-                    instructions: input.instructions,
+                    instructions,
                     content: pageContent,
                     schema,
                     modelSettings,
