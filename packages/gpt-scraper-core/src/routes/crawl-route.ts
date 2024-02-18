@@ -1,11 +1,11 @@
 import { Actor } from 'apify';
-import { Dataset, NonRetryableError, PlaywrightCrawlingContext, log, utils } from 'crawlee';
-import { validateInputCssSelectors } from '../configuration';
-import { ERROR_OCCURRED_MESSAGE, NonRetryableOpenaiAPIError, OpenaiAPIErrorToExitActor } from '../errors';
-import { getNumberOfTextTokens, htmlToMarkdown, maybeShortsTextByTokenLength, shrinkHtml } from '../processors';
-import { PAGE_FORMAT } from '../types';
-import { CrawlerState } from '../types/crawler-state';
-import { ERROR_TYPE, doesUrlMatchGlobs } from '../utils';
+import { Dataset, KeyValueStore, NonRetryableError, PlaywrightCrawlingContext, log, utils } from 'crawlee';
+import { validateInputCssSelectors } from '../configuration.js';
+import { ERROR_OCCURRED_MESSAGE, NonRetryableOpenaiAPIError, OpenaiAPIErrorToExitActor } from '../errors.js';
+import { getNumberOfTextTokens, htmlToMarkdown, maybeShortsTextByTokenLength, shrinkHtml } from '../processors.js';
+import { CrawlerState } from '../types/crawler-state.js';
+import { PAGE_FORMAT } from '../types/input.js';
+import { ERROR_TYPE, doesUrlMatchGlobs } from '../utils.js';
 
 /**
  * The main crawling route. Enqueues new URLs and processes the page by calling the GPT model.
@@ -13,23 +13,24 @@ import { ERROR_TYPE, doesUrlMatchGlobs } from '../utils';
 export const crawlRoute = async (context: PlaywrightCrawlingContext) => {
     const { request, page, enqueueLinks, closeCookieModals, crawler } = context;
 
+    const kvStore = await KeyValueStore.open();
+
     const state = await crawler.useState<CrawlerState>();
     const {
-        maxPagesPerCrawl,
-        maxCrawlingDepth,
-        includeUrlGlobs,
-        linkSelector,
         excludeUrlGlobs,
+        includeUrlGlobs,
+        instructions,
+        linkSelector,
+        maxCrawlingDepth,
+        maxPagesPerCrawl,
+        model,
+        modelSettings,
+        pageFormat,
+        removeElementsCssSelector,
+        saveSnapshots,
+        schema,
         skipGptGlobs,
         targetSelector,
-        removeElementsCssSelector,
-        pageFormat,
-        instructions,
-        model,
-        saveSnapshots,
-        kvStore,
-        schema,
-        modelSettings,
     } = state.config;
 
     const { depth = 0 } = request.userData;

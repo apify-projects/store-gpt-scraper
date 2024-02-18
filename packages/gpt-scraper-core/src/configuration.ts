@@ -1,14 +1,14 @@
 import { AnySchema } from 'ajv';
 import addFormats from 'ajv-formats';
-import Ajv2020 from 'ajv/dist/2020';
+import Ajv2020 from 'ajv/dist/2020.js';
 import { Actor } from 'apify';
-import { Cookie, KeyValueStore, RequestList, log } from 'crawlee';
+import { Cookie, RequestList, log } from 'crawlee';
 import { Page } from 'playwright';
-import { getModelByName } from './models/models';
-import { OpenAIModelHandler } from './models/openai';
+import { getModelByName } from './models/models.js';
+import { OpenAIModelHandler } from './models/openai.js';
 import { OpenAIModelSettings } from './types';
-import { Config } from './types/config';
-import { Input, PAGE_FORMAT } from './types/input';
+import { Config } from './types/config.js';
+import { Input, PAGE_FORMAT } from './types/input.js';
 
 /**
  * Parses the Actor's input into a config object and validates it. Throws an Actor fail if the input is invalid.
@@ -39,8 +39,7 @@ export const parseConfiguration = async (input: Input): Promise<Config> => {
 
     const proxyConfiguration = await Actor.createProxyConfiguration(input.proxyConfiguration);
 
-    const requestList = await RequestList.open('start-urls', startUrls);
-    const kvStore = await KeyValueStore.open();
+    const { requests } = await RequestList.open({ sources: startUrls });
 
     // make sure to change 0 (unlimited) to a very high number, because this is used in arithmetics and comparisons
     const maxCrawlingDepth = input.maxCrawlingDepth || 999999;
@@ -51,7 +50,7 @@ export const parseConfiguration = async (input: Input): Promise<Config> => {
         includeUrlGlobs,
         initialCookies,
         instructions,
-        kvStore,
+        requests,
         linkSelector,
         maxCrawlingDepth,
         maxPagesPerCrawl,
@@ -60,7 +59,6 @@ export const parseConfiguration = async (input: Input): Promise<Config> => {
         pageFormat: pageFormatInRequest,
         proxyConfiguration,
         removeElementsCssSelector,
-        requestList,
         saveSnapshots,
         schema,
         skipGptGlobs,
