@@ -25,7 +25,7 @@ The cost of the scraper is the same as the cost of [Web Scraper](https://apify.c
 You can find information about the cost on [the pricing page](https://apify.com/pricing) under the Detailed Pricing breakdown section.
 The cost estimates are based on averages and may vary depending on the complexity of the pages you scrape.
 
-> If you are looking for a basic GPT Scraper that includes OpenAI API's cost, check out the [GPT Scraper](https://apify.com/drobnikj/gpt-scraper). It is also able to extract content from a website and then pass that content to the OpenAI API.
+> If you are looking for a basic and more predictable GPT Scraper that includes OpenAI API's cost, check out the [GPT Scraper](https://apify.com/drobnikj/gpt-scraper). It is also able to extract content from a website and then pass that content to the OpenAI API.
 
 ## How to use Extended GPT Scraper
 
