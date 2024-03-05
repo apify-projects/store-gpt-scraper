@@ -15,5 +15,6 @@
         "dataset": "../../../shared/dataset_schema.json"
     },
 	"dockerContextDir": "../../..",
-    "minMemoryMbytes": 4096
+    "minMemoryMbytes": 4096,
+    "maxMemoryMbytes": 4096
 }

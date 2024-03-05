@@ -8,41 +8,8 @@
             "title": "Start URLs",
             "type": "array",
             "description": "A static list of URLs to scrape. <br><br>For details, see <a href='https://apify.com/drobnikj/extended-gpt-scraper#start-urls' target='_blank' rel='noopener'>Start URLs</a> in README.",
-            "prefill": [
-                { "url": "https://news.ycombinator.com/" }
-            ],
+            "prefill": [{ "url": "https://news.ycombinator.com/" }],
             "editor": "requestListSources"
-        },
-        "includeUrlGlobs": {
-            "title": "Include URLs (globs)",
-            "type": "array",
-            "description": "Glob patterns matching URLs of pages that will be included in crawling. Combine them with the link selector to tell the scraper where to find links. You need to use both globs and link selector to crawl further pages.",
-            "editor": "globs",
-            "default": [],
-            "prefill": []
-        },
-        "excludeUrlGlobs": {
-            "title": "Exclude URLs (globs)",
-            "type": "array",
-            "description": "Glob patterns matching URLs of pages that will be excluded from crawling. Note that this affects only links found on pages, but not Start URLs, which are always crawled.",
-            "editor": "globs",
-            "default": [],
-            "prefill": []
-        },
-        "linkSelector": {
-            "title": "Link selector",
-            "type": "string",
-            "description": "This is a CSS selector that says which links on the page (<code>&lt;a&gt;</code> elements with <code>href</code> attribute) should be followed and added to the request queue. To filter the links added to the queue, use the <b>Pseudo-URLs</b> setting.<br><br>If <b>Link selector</b> is empty, the page links are ignored.<br><br>For details, see <a href='https://apify.com/drobnikj/extended-gpt-scraper#link-selector' target='_blank' rel='noopener'>Link selector</a> in README.",
-            "editor": "textfield",
-            "prefill": "a[href]"
-        },
-        "initialCookies": {
-            "title": "Initial cookies",
-            "type": "array",
-            "description": "Cookies that will be pre-set to all pages the scraper opens. This is useful for pages that require login. The value is expected to be a JSON array of objects with `name`, `value`, 'domain' and 'path' properties. For example: `[{\"name\": \"cookieName\", \"value\": \"cookieValue\"}, \"domain\": \".domain.com\", \"path\": \"/\"}]`.\n\nYou can use the [EditThisCookie](https://chrome.google.com/webstore/detail/editthiscookie/fngmhnnpilhplaeedifhccceomclgfbg) browser extension to copy browser cookies in this format, and paste it here.",
-            "default": [],
-            "prefill": [],
-            "editor": "json"
         },
         "openaiApiKey": {
             "title": "OpenAI API key",
@@ -66,22 +33,32 @@
             "default": "gpt-3.5-turbo",
             "prefill": "gpt-3.5-turbo",
             "enum": ["gpt-3.5-turbo", "gpt-3.5-turbo-16k", "gpt-4", "gpt-4-32k", "text-davinci-003", "gpt-4-turbo"],
-            "enumTitles": ["GPT-3.5 Turbo", "GPT-3.5 Turbo 16k", "GPT-4", "GPT-4 32k", "GTP-3 (davinci)", "GPT-4 Turbo (Preview)"]
+            "enumTitles": [
+                "GPT-3.5 Turbo",
+                "GPT-3.5 Turbo 16k",
+                "GPT-4",
+                "GPT-4 32k",
+                "GTP-3 (davinci)",
+                "GPT-4 Turbo (Preview)"
+            ]
         },
-        "targetSelector": {
-            "title": "Content selector",
-            "type": "string",
-            "description": "A CSS selector of the HTML element on the page that will be used in the instruction. Instead of a whole page, you can use only part of the page. For example: \"div#content\".",
-            "editor": "textfield",
-            "prefill": ""
+        "includeUrlGlobs": {
+            "sectionCaption": "Crawler settings",
+            "sectionDescription": "### Configure the behavior of the web crawler during the scraping process.\n- Specify which URLs to include or exclude from the crawling process, set the maximum depth of crawling, the selection of links to follow, etc.\n- By defining these parameters, you can efficiently navigate through websites and extract valuable information for further processing.",
+            "title": "Include URLs (globs)",
+            "type": "array",
+            "description": "Glob patterns matching URLs of pages that will be included in crawling. Combine them with the link selector to tell the scraper where to find links. You need to use both globs and link selector to crawl further pages.",
+            "editor": "globs",
+            "default": [],
+            "prefill": []
         },
-        "removeElementsCssSelector": {
-            "title": "Remove HTML elements (CSS selector)",
-            "type": "string",
-            "description": "A CSS selector matching HTML elements that will be removed from the DOM, before sending it to GPT processing. This is useful to skip irrelevant page content and save on GPT input tokens. \n\nBy default, the Actor removes usually unwanted elements like scripts, styles and inline images. You can disable the removal by setting this value to some non-existent CSS selector like `dummy_keep_everything`.",
-            "editor": "textarea",
-            "default": "script, style, noscript, path, svg, xlink",
-            "prefill": "script, style, noscript, path, svg, xlink"
+        "excludeUrlGlobs": {
+            "title": "Exclude URLs (globs)",
+            "type": "array",
+            "description": "Glob patterns matching URLs of pages that will be excluded from crawling. Note that this affects only links found on pages, but not Start URLs, which are always crawled.",
+            "editor": "globs",
+            "default": [],
+            "prefill": []
         },
         "maxCrawlingDepth": {
             "title": "Max crawling depth",
@@ -98,52 +75,36 @@
             "default": 10,
             "unit": "pages"
         },
-        "skipGptGlobs": {
-            "title": "Skip GPT processing for Globs",
+        "linkSelector": {
+            "title": "Link selector",
+            "type": "string",
+            "description": "This is a CSS selector that says which links on the page (<code>&lt;a&gt;</code> elements with <code>href</code> attribute) should be followed and added to the request queue. To filter the links added to the queue, use the <b>Pseudo-URLs</b> setting.<br><br>If <b>Link selector</b> is empty, the page links are ignored.<br><br>For details, see <a href='https://apify.com/drobnikj/extended-gpt-scraper#link-selector' target='_blank' rel='noopener'>Link selector</a> in README.",
+            "editor": "textfield",
+            "prefill": "a[href]"
+        },
+        "initialCookies": {
+            "title": "Initial cookies",
             "type": "array",
-            "description": "This setting allows you to specify certain page URLs to skip GPT instructions for. Pages matching these glob patterns will only be crawled for links, excluding them from GPT processing. Useful for intermediary pages used for navigation or undesired content.",
-            "editor": "globs",
+            "description": "Cookies that will be pre-set to all pages the scraper opens. This is useful for pages that require login. The value is expected to be a JSON array of objects with `name`, `value`, 'domain' and 'path' properties. For example: `[{\"name\": \"cookieName\", \"value\": \"cookieValue\"}, \"domain\": \".domain.com\", \"path\": \"/\"}]`.\n\nYou can use the [EditThisCookie](https://chrome.google.com/webstore/detail/editthiscookie/fngmhnnpilhplaeedifhccceomclgfbg) browser extension to copy browser cookies in this format, and paste it here.",
             "default": [],
-            "prefill": []
-        },
-        "useStructureOutput": {
-            "sectionCaption": "Formatted output",
-            "sectionDescription": "By default, the scraper outputs text answers for each page. If you want to get data in a structured format, you can define a JSON schema. The scraper uses [function](https://platform.openai.com/docs/api-reference/chat/create#chat/create-functions), which is called for each page. The function receives the page content and returns the answer in the defined JSON format.",
-            "title": "Use JSON schema to format answer",
-            "type": "boolean",
-            "description": "If true, the answer will be transformed into a structured format based on the schema in the `jsonAnswer` attribute.",
-            "editor": "checkbox"
-        },
-        "schema": {
-            "title": "Schema",
-            "type": "object",
-            "description": "Defines how the output will be stored in structured format using the [JSON Schema[JSON Schema](https://json-schema.org/understanding-json-schema/). Keep in mind that it uses [function](https://platform.openai.com/docs/api-reference/chat/create#chat/create-functions), so by setting the description of the fields and the correct title, you can get better results.",
-            "prefill": {
-                "type": "object",
-                "properties": {
-                    "title": {
-                        "type": "string",
-                        "description": "Page title"
-                    },
-                    "description": {
-                        "type": "string",
-                        "description": "Page description"
-                    }
-                },
-                "required": ["title", "description"]
-            },
+            "prefill": [],
             "editor": "json"
         },
-        "schemaDescription": {
-            "title": "Schema description",
-            "type": "string",
-            "description": "Description of the schema function. Use this to provide more context for the schema.\n\nBy default, the `instructions` field's value is used as the schema description, you can change it here.",
-            "prefill": "",
-            "nullable": true,
-            "editor": "textarea"
+        "proxyConfiguration": {
+            "title": "Proxy configuration",
+            "type": "object",
+            "description": "This specifies the proxy servers that will be used by the scraper in order to hide its origin.<br><br>For details, see <a href='https://apify.com/drobnikj/extended-gpt-scraper#proxy-configuration' target='_blank' rel='noopener'>Proxy configuration</a> in README.",
+            "prefill": {
+                "useApifyProxy": true
+            },
+            "default": {
+                "useApifyProxy": false
+            },
+            "editor": "proxy"
         },
         "temperature": {
             "sectionCaption": "GPT settings",
+            "sectionDescription": "### Adjust the settings related to the behavior of the GPT model.\n- These settings control the randomness and diversity of the model's completions.",
             "title": "Temperature",
             "type": "string",
             "description": "Controls randomness: Lowering results in less random completions. As the temperature approaches zero, the model will become deterministic and repetitive. For consistent results, we recommend setting the temperature to 0.",
@@ -171,14 +132,22 @@
             "editor": "textfield",
             "default": "0"
         },
-        "proxyConfiguration": {
-            "sectionCaption": "Advanced configuration",
-            "title": "Proxy configuration",
-            "type": "object",
-            "description": "This specifies the proxy servers that will be used by the scraper in order to hide its origin.<br><br>For details, see <a href='https://apify.com/drobnikj/extended-gpt-scraper#proxy-configuration' target='_blank' rel='noopener'>Proxy configuration</a> in README.",
-            "prefill": { "useApifyProxy": true },
-            "default": { "useApifyProxy": false },
-            "editor": "proxy"
+        "targetSelector": {
+            "sectionCaption": "Page processing",
+            "sectionDescription": "### Define how the content of each web page is processed before being sent to the GPT model.\n- This includes selecting specific content, removing irrelevant HTML elements, schoose the page format to send to the GPT, etc.\n- Fine-tuning these settings helps optimize the quality and relevance of the generated text output.",
+            "title": "Content selector",
+            "type": "string",
+            "description": "A CSS selector of the HTML element on the page that will be used in the instruction. Instead of a whole page, you can use only part of the page. For example: \"div#content\".",
+            "editor": "textfield",
+            "prefill": ""
+        },
+        "removeElementsCssSelector": {
+            "title": "Remove HTML elements (CSS selector)",
+            "type": "string",
+            "description": "A CSS selector matching HTML elements that will be removed from the DOM, before sending it to GPT processing. This is useful to skip irrelevant page content and save on GPT input tokens. \n\nBy default, the Actor removes usually unwanted elements like scripts, styles and inline images. You can disable the removal by setting this value to some non-existent CSS selector like `dummy_keep_everything`.",
+            "editor": "textarea",
+            "default": "script, style, noscript, path, svg, xlink",
+            "prefill": "script, style, noscript, path, svg, xlink"
         },
         "pageFormatInRequest": {
             "title": "Page format in request",
@@ -188,11 +157,55 @@
             "enumTitles": ["HTML", "Markdown"],
             "default": "Markdown"
         },
+        "skipGptGlobs": {
+            "title": "Skip GPT processing for Globs",
+            "type": "array",
+            "description": "This setting allows you to specify certain page URLs to skip GPT instructions for. Pages matching these glob patterns will only be crawled for links, excluding them from GPT processing. Useful for intermediary pages used for navigation or undesired content.",
+            "editor": "globs",
+            "default": [],
+            "prefill": []
+        },
+        "useStructureOutput": {
+            "sectionCaption": "JSON formatted output",
+            "sectionDescription": "### Get structured output data by defining a JSON schema.\n- By default, the scraper outputs text answers for each page. If you want to get data in a structured format, you can define a JSON schema.\n- The scraper uses [function](https://platform.openai.com/docs/api-reference/chat/create#chat/create-functions), which is called for each page. The function receives the page content and returns the answer in the defined JSON format.",
+            "title": "Use JSON schema to format answer",
+            "type": "boolean",
+            "description": "If true, the answer will be transformed into a structured format based on the schema in the `jsonAnswer` attribute.",
+            "editor": "checkbox"
+        },
+        "schema": {
+            "title": "JSON schema format",
+            "type": "object",
+            "description": "Defines how the output will be stored in structured format using the [JSON Schema[JSON Schema](https://json-schema.org/understanding-json-schema/). Keep in mind that it uses [function](https://platform.openai.com/docs/api-reference/chat/create#chat/create-functions), so by setting the description of the fields and the correct title, you can get better results.",
+            "prefill": {
+                "type": "object",
+                "properties": {
+                    "title": {
+                        "type": "string",
+                        "description": "Page title"
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "Page description"
+                    }
+                },
+                "required": ["title", "description"]
+            },
+            "editor": "json"
+        },
+        "schemaDescription": {
+            "title": "Schema description",
+            "type": "string",
+            "description": "Description of the schema function. Use this to provide more context for the schema.\n\nBy default, the `instructions` field's value is used as the schema description, you can change it here.",
+            "prefill": "",
+            "nullable": true,
+            "editor": "textarea"
+        },
         "saveSnapshots": {
             "title": "Save debug snapshots",
             "type": "boolean",
             "description": "For each page store its HTML, screenshot and parsed content (markdown/HTML as it was sent to ChatGPT) adding links to these into the output",
-            "editor": "checkbox",
+            "editor": "hidden",
             "default": true
         }
     },
