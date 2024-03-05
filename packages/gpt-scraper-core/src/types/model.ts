@@ -26,6 +26,7 @@ export interface ProcessInstructionsOptions<ModelSettings extends object> {
     apifyClient: ApifyClient;
     modelSettings: ModelSettings;
     schema?: AnySchema;
+    schemaDescription: string;
 }
 
 export interface ProcessedInstructions {

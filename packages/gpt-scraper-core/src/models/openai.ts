@@ -3,7 +3,15 @@ import { log, sleep } from 'crawlee';
 import { ChatOpenAI } from 'langchain/chat_models/openai';
 import { OpenAI } from 'langchain/llms/openai';
 import { LLMResult } from 'langchain/schema';
-import { NonRetryableOpenaiAPIError, OpenaiAPIError, OpenaiAPIErrorToExitActor, RateLimitedError, REPETITIVE_PROMPT_ERROR_MESSAGE } from '../errors.js';
+import {
+    DESCRIPTION_LENGTH_ERROR,
+    DESCRIPTION_LENGTH_ERROR_LOG_MESSAGE,
+    NonRetryableOpenaiAPIError,
+    OpenaiAPIError,
+    OpenaiAPIErrorToExitActor,
+    REPETITIVE_PROMPT_ERROR_MESSAGE,
+    RateLimitedError,
+} from '../errors.js';
 import { tryToParseJsonFromString } from '../processors.js';
 import { ProcessInstructionsOptions } from '../types/model.js';
 import { OpenAIModelSettings } from '../types/models.js';
@@ -34,12 +42,17 @@ const wrapInOpenaiError = (error: any): OpenaiAPIError => {
     const isRepetitivePromptError = error.status === 400 && errorMessage.includes('repetitive patterns');
     if (isRepetitivePromptError) return new NonRetryableOpenaiAPIError(REPETITIVE_PROMPT_ERROR_MESSAGE);
 
+    const isDescriptionLengthError = error.status === 400 && errorMessage.endsWith(DESCRIPTION_LENGTH_ERROR);
+    if (isDescriptionLengthError) {
+        return new OpenaiAPIErrorToExitActor(DESCRIPTION_LENGTH_ERROR_LOG_MESSAGE, error.status);
+    }
+
     return new OpenaiAPIErrorToExitActor(errorMessage, error.status);
 };
 
 export class OpenAIModelHandler extends GeneralModelHandler<OpenAIModelSettings> {
     async processInstructions(options: ProcessInstructionsOptions<OpenAIModelSettings>) {
-        const { instructions, content, schema, modelSettings } = options;
+        const { instructions, content, schema, schemaDescription, modelSettings } = options;
         log.debug(`Calling Openai API with model ${this.modelConfig.modelName}`);
 
         const handleLLMEndCallback = this.handleLLMEndCallbackHandler();
@@ -53,7 +66,7 @@ export class OpenAIModelHandler extends GeneralModelHandler<OpenAIModelSettings>
         const baseModel = isChatModel ? new ChatOpenAI(modelOptions) : new OpenAI(modelOptions);
 
         const useSchema = baseModel instanceof ChatOpenAI && schema;
-        const model = useSchema ? this.buildModelWithSchemaFunction(baseModel, instructions, schema) : baseModel;
+        const model = useSchema ? this.buildModelWithSchemaFunction(baseModel, schemaDescription, schema) : baseModel;
         const chain = this.buildLLMChain(model);
 
         const result = await chain.call({ instructions, content });
@@ -107,11 +120,11 @@ export class OpenAIModelHandler extends GeneralModelHandler<OpenAIModelSettings>
      * Builds the model with the given schema function. Functions are a more direct way of extracting data to JSON on OpenAI.
      * - It's not guaranteed that the function will return JSON, so we need to properly parse it.
      */
-    private buildModelWithSchemaFunction = (model: ChatOpenAI, instructions: string, schema: AnySchema) => {
+    private buildModelWithSchemaFunction = (model: ChatOpenAI, description: string, schema: AnySchema) => {
         const parameters = schema as Record<string, unknown>;
 
         return model.bind({
-            functions: [{ name: 'extract_function', description: instructions, parameters }],
+            functions: [{ name: 'extract_function', description, parameters }],
             function_call: { name: 'extract_function' },
         });
     };

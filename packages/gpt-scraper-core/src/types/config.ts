@@ -23,6 +23,7 @@ export interface Config {
     requests: Request[];
     saveSnapshots: boolean;
     schema?: AnySchema;
+    schemaDescription: string;
     skipGptGlobs?: GlobInput[];
     targetSelector?: string;
 }

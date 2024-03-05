@@ -157,6 +157,14 @@
             },
             "editor": "json"
         },
+        "schemaDescription": {
+            "title": "Schema description",
+            "type": "string",
+            "description": "Description of the schema function. Use this to provide more context for the schema.\n\nBy default, the `instructions` field's value is used as the schema description, you can change it here.",
+            "prefill": "",
+            "nullable": true,
+            "editor": "textarea"
+        },
         "saveSnapshots": {
             "title": "Save debug snapshots",
             "type": "boolean",
