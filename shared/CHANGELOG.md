@@ -1,5 +1,13 @@
 This changelog tracks updates to both GTP Scraper and Extended GPT Scraper actors.
 
+# 2023-03-05
+*Features*
+- Added separate schema description field (input `schemaDescription`). By default the value is taken from `instructions` input.
+- Refactored and improved the Actor's input schema to be more user-friendly.
+
+*Fixes*
+- Properly handle OpenAI's schema description too long error.
+
 # 2023-01-31
 *Fixes*
 - Eliminated the bug, when on some sites that contain erronous javascript the scraper would fail
