@@ -1,6 +1,6 @@
 import { Actor } from 'apify';
 import { PlaywrightCrawlingContext } from 'crawlee';
-import { CrawlerState } from '../types/crawler-state';
+import { CrawlerState } from '../types/crawler-state.js';
 
 /**
  * Adds the initial cookies to the session cookies, if they are not already present.

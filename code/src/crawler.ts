@@ -1,14 +1,10 @@
-import { createRequestDebugInfo } from '@crawlee/utils';
-import { Dataset, NonRetryableError, PlaywrightCrawler, log } from 'crawlee';
-import { parseConfiguration } from './configuration.js';
+import { Dataset, NonRetryableError, PlaywrightCrawler, createRequestDebugInfo, log } from 'crawlee';
 import { crawlRoute } from './routes/crawl-route.js';
+import { Config } from './types/config.js';
 import { CrawlerState } from './types/crawler-state.js';
-import { Input } from './types/input.js';
 import { ERROR_TYPE } from './utils.js';
 
-export const createCrawler = async ({ input }: { input: Input }) => {
-    const config = await parseConfiguration(input);
-
+export const createCrawler = async (config: Config) => {
     const { maxPagesPerCrawl, proxyConfiguration, requests } = config;
 
     const crawler = new PlaywrightCrawler({

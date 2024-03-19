@@ -1,14 +1,15 @@
-import { AnySchema } from 'ajv';
-import addFormats from 'ajv-formats';
-import Ajv2020 from 'ajv/dist/2020.js';
+import Ajv, { AnySchema } from 'ajv';
 import { Actor } from 'apify';
 import { Cookie, RequestList, log } from 'crawlee';
 import { Page } from 'playwright';
 import { getModelByName } from './models/models.js';
 import { OpenAIModelHandler } from './models/openai.js';
-import { OpenAIModelSettings } from './types';
 import { Config } from './types/config.js';
 import { Input, PAGE_FORMAT } from './types/input.js';
+import { OpenAIModelSettings } from './types/models.js';
+
+// eslint-disable-next-line new-cap
+const ajv = new Ajv.default();
 
 /**
  * Parses the Actor's input into a config object and validates it. Throws an Actor fail if the input is invalid.
@@ -41,9 +42,12 @@ export const parseConfiguration = async (input: Input): Promise<Config> => {
 
     const { requests } = await RequestList.open({ sources: startUrls });
 
+    const totalMaxItems = Number(process.env.ACTOR_MAX_PAID_DATASET_ITEMS) || Number.POSITIVE_INFINITY;
+    const maxPagesPerCrawl = Math.min(input.maxPagesPerCrawl || Number.POSITIVE_INFINITY, totalMaxItems);
+    log.info(`Max pages per crawl: ${maxPagesPerCrawl}`);
+
     // make sure to change 0 (unlimited) to a very high number, because this is used in arithmetics and comparisons
-    const maxCrawlingDepth = input.maxCrawlingDepth || 999999;
-    const maxPagesPerCrawl = input.maxPagesPerCrawl || 999999;
+    const maxCrawlingDepth = input.maxCrawlingDepth || Number.POSITIVE_INFINITY;
 
     return {
         excludeUrlGlobs,
@@ -109,9 +113,7 @@ const validateSchemaOrFail = async (schema: AnySchema | undefined): Promise<AnyS
         return;
     }
     try {
-        const validator = new Ajv2020();
-        addFormats(validator);
-        validator.compile(schema);
+        ajv.compile(schema);
         return schema;
     } catch (e: any) {
         log.error(`Schema is not valid: ${e.message}`, { error: e });
