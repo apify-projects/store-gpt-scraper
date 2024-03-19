@@ -1,8 +1,8 @@
 import { AnySchema } from 'ajv';
 import { Cookie, GlobInput, ProxyConfiguration, Request } from 'crawlee';
-import { OpenAIModelHandler } from '../models/openai';
-import { PAGE_FORMAT } from './input';
-import { OpenAIModelSettings } from './models';
+import { OpenAIModelHandler } from '../models/openai.js';
+import { PAGE_FORMAT } from './input.js';
+import { OpenAIModelSettings } from './models.js';
 
 /**
  * Parsed input configuration.

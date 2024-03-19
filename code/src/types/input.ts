@@ -1,11 +1,13 @@
 import { AnySchema } from 'ajv';
 import { Cookie, GlobInput, ProxyConfigurationOptions, RequestOptions } from 'crawlee';
-import { OpenAIModelSettings } from './models';
+import { ACTORS } from './actors.js';
+import { OpenAIModelSettings } from './models.js';
+import { ValuesOf } from './utils.js';
 
 /**
  * Input schema in TypeScript format.
  */
-export interface Input extends OpenAIModelSettings {
+export type Input = (OpenAIModelSettings & DeprecatedInput) & {
     startUrls: RequestOptions[];
     includeUrlGlobs?: GlobInput[];
     excludeUrlGlobs?: GlobInput[];
@@ -25,9 +27,14 @@ export interface Input extends OpenAIModelSettings {
     skipGptGlobs?: GlobInput[];
     initialCookies?: Cookie[];
     removeElementsCssSelector?: string;
-}
+    actorType: ValuesOf<typeof ACTORS>;
+};
 
 export enum PAGE_FORMAT {
     HTML = 'HTML',
     MARKDOWN = 'Markdown',
 }
+
+type DeprecatedInput = {
+    globs?: GlobInput[];
+};

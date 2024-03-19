@@ -1,35 +1,29 @@
-# Build the TypeScript code in a separate stage, to reduce the size of the final image.
+# Specify the base Docker image. You can read more about
+# the available images at https://crawlee.dev/docs/guides/docker-images
+# You can also use any other image from Docker Hub.
 FROM apify/actor-node-playwright-chrome:18 AS builder
-ARG ACTOR_PATH_IN_DOCKER_CONTEXT
 
-# Copy root package*.json
-COPY --chown=myuser package*.json ./
-
-# Copy package.jsons of all used workspace members
-COPY --chown=myuser "${ACTOR_PATH_IN_DOCKER_CONTEXT}/package*.json" "${ACTOR_PATH_IN_DOCKER_CONTEXT}/"
-COPY --chown=myuser packages/gpt-scraper-core/package*.json packages/gpt-scraper-core/
+# Copy just package.json and package-lock.json
+# to speed up the build using Docker layer cache.
+COPY --chown=myuser code/package*.json ./
 
 # Install all dependencies. Don't audit to speed up the installation.
 RUN npm install --include=dev --audit=false
 
-# Next, copy the rest of the source files.
-COPY --chown=myuser "${ACTOR_PATH_IN_DOCKER_CONTEXT}" "./${ACTOR_PATH_IN_DOCKER_CONTEXT}"
-COPY --chown=myuser packages packages/
-COPY --chown=myuser tsconfig.build.json ./
+# Next, copy the source files using the user set
+# in the base image.
+COPY --chown=myuser code ./
 
-# Build the TypeScript libraries
-RUN npm run -w "${ACTOR_PATH_IN_DOCKER_CONTEXT}" build
+# Install all dependencies and build the project.
+# Don't audit to speed up the installation.
+RUN npm run build
 
-# Create the final image, only with compiled code and production dependencies.
+# Create final image
 FROM apify/actor-node-playwright-chrome:18
-ARG ACTOR_PATH_IN_DOCKER_CONTEXT
 
-# Copy root package*.json
-COPY --chown=myuser package*.json ./
-
-# Copy package.jsons of all workspace members
-COPY --chown=myuser "${ACTOR_PATH_IN_DOCKER_CONTEXT}/package*.json" "${ACTOR_PATH_IN_DOCKER_CONTEXT}/"
-COPY --chown=myuser packages/gpt-scraper-core/package*.json packages/gpt-scraper-core/
+# Copy just package.json and package-lock.json
+# to speed up the build using Docker layer cache.
+COPY --chown=myuser code/package*.json ./
 
 # Install NPM packages, skip optional and development dependencies to
 # keep the image small. Avoid logging too much and print the dependency
@@ -44,14 +38,17 @@ RUN npm --quiet set progress=false \
     && npm --version \
     && rm -r ~/.npm
 
-# Copy the rest of the source files.
-COPY --chown=myuser "${ACTOR_PATH_IN_DOCKER_CONTEXT}" "./${ACTOR_PATH_IN_DOCKER_CONTEXT}"
-COPY --chown=myuser packages packages/
+# Copy built JS files from builder image
+COPY --from=builder --chown=myuser /home/myuser/dist ./dist
 
-# Copy built JS files from the `builder` stage
-COPY --chown=myuser --from=builder "/home/myuser/${ACTOR_PATH_IN_DOCKER_CONTEXT}/dist" "${ACTOR_PATH_IN_DOCKER_CONTEXT}/dist"
-COPY --chown=myuser --from=builder /home/myuser/packages/gpt-scraper-core/dist packages/gpt-scraper-core/dist
+# Next, copy the remaining files and directories with the source code.
+# Since we do this after NPM install, quick build will be really fast
+# for most source file changes.
+COPY --chown=myuser code ./
 
-# Run the actor's start command when running this image
+ARG ACTOR_PATH_IN_DOCKER_CONTEXT
 ENV ACTOR_PATH_IN_DOCKER_CONTEXT="${ACTOR_PATH_IN_DOCKER_CONTEXT}"
-CMD npm run -w "${ACTOR_PATH_IN_DOCKER_CONTEXT}" start:prod --silent
+
+# Run the image. If you know you won't need headful browsers,
+# you can remove the XVFB start script for a micro perf gain.
+CMD ./start_xvfb_and_run_cmd.sh && npm run start:prod --silent

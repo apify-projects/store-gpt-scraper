@@ -1,0 +1,44 @@
+{
+    "name": "gpt-scraper",
+    "version": "0.0.1",
+    "type": "module",
+    "description": "This is an example of an Apify actor.",
+    "engines": {
+        "node": ">=18.0.0"
+    },
+    "dependencies": {
+        "ajv": "^8.12.0",
+        "ajv-formats": "^2.1.1",
+        "apify": "^3.0.0",
+        "apify-client": "^2.7.1",
+        "crawlee": "^3.0.0",
+        "gpt-3-encoder": "^1.1.4",
+        "joplin-turndown-plugin-gfm": "^1.0.12",
+        "langchain": "^0.0.209",
+        "minimatch": "^9.0.3",
+        "playwright": "*",
+        "turndown": "^7.1.2"
+    },
+    "devDependencies": {
+        "@apify/eslint-config-ts": "^0.2.3",
+        "@apify/tsconfig": "^0.1.0",
+        "@types/turndown": "^5.0.1",
+        "@typescript-eslint/eslint-plugin": "^5.32.0",
+        "@typescript-eslint/parser": "^5.32.0",
+        "eslint": "^8.20.0",
+        "tsx": "^4.7.1",
+        "typescript": "^4.7.4"
+    },
+    "scripts": {
+        "start": "npm run start:dev",
+        "start:prod": "node dist/entrypoint.js",
+        "start:dev": "tsx src/entrypoint.ts",
+        "build": "tsc",
+        "lint": "eslint ./src --ext .ts",
+        "lint:fix": "eslint ./src --ext .ts --fix",
+        "test": "echo \"Error: oops, the actor has no tests yet, sad!\" && exit 1",
+        "postinstall": "npx crawlee install-playwright-browsers"
+    },
+    "author": "It's not you it's me",
+    "license": "ISC"
+}
