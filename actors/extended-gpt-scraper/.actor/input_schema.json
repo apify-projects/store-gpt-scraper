@@ -165,6 +165,12 @@
             "default": [],
             "prefill": []
         },
+        "removeLinkUrls": {
+            "title": "Remove link URLs",
+            "type": "boolean",
+            "description": "Removes web link URLs while keeping the text content they display.\n- This helps reduce the total page content by eliminating unnecessary URLs before sending to GPT\n- Useful if you are hitting maximum input tokens limits",
+            "editor": "checkbox"
+        },
         "useStructureOutput": {
             "sectionCaption": "JSON formatted output",
             "sectionDescription": "### Get structured output data by defining a JSON schema.\n- By default, the scraper outputs text answers for each page. If you want to get data in a structured format, you can define a JSON schema.\n- The scraper uses [function](https://platform.openai.com/docs/api-reference/chat/create#chat/create-functions), which is called for each page. The function receives the page content and returns the answer in the defined JSON format.",
