@@ -8,9 +8,16 @@ const JSON_REGEX = /\{(?:[^{}]|())*\}/;
  * Shrinks HTML by removing css targeted elements and extra spaces
  * @param html
  */
-export const shrinkHtml = async (html: string, page: Page, removeElementsCssSelector?: string) => {
+export const shrinkHtml = async (
+    html: string,
+    page: Page,
+    options: { removeLinkUrls: boolean; removeElementsCssSelector?: string },
+) => {
+    const { removeElementsCssSelector, removeLinkUrls } = options;
+
     const stripped = await page.evaluate(
-        ([unstripped, removeSelector]) => {
+        // eslint-disable-next-line @typescript-eslint/no-shadow
+        ([unstripped, removeSelector, removeLinkUrls]) => {
             const doc = new DOMParser().parseFromString(unstripped, 'text/html');
             if (removeSelector) {
                 const elements = doc.querySelectorAll(removeSelector);
@@ -24,9 +31,17 @@ export const shrinkHtml = async (html: string, page: Page, removeElementsCssSele
                     }
                 }
             }
+
+            if (removeLinkUrls) {
+                const linkEls = doc.querySelectorAll('a');
+                for (const linkEl of linkEls) {
+                    linkEl.removeAttribute('href');
+                }
+            }
+
             return doc.documentElement.outerHTML;
         },
-        [html, removeElementsCssSelector] as const,
+        [html, removeElementsCssSelector, removeLinkUrls] as const,
     );
     return stripped.replace(/\s{2,}/g, ' ') // remove extra spaces
         .replace(/>\s+</g, '><'); // remove all spaces between tags

@@ -20,6 +20,7 @@ export interface Config {
     pageFormat: PAGE_FORMAT;
     proxyConfiguration?: ProxyConfiguration;
     removeElementsCssSelector?: string;
+    removeLinkUrls: boolean;
     requests: Request[];
     saveSnapshots: boolean;
     schema?: AnySchema;

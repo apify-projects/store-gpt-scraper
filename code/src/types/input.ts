@@ -27,6 +27,7 @@ export type Input = (OpenAIModelSettings & DeprecatedInput) & {
     skipGptGlobs?: GlobInput[];
     initialCookies?: Cookie[];
     removeElementsCssSelector?: string;
+    removeLinkUrls?: boolean;
     actorType: ValuesOf<typeof ACTORS>;
 };
 
