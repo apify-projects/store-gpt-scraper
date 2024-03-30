@@ -129,11 +129,20 @@
             "enumTitles": ["HTML", "Markdown"],
             "default": "Markdown"
         },
+        "dynamicContentWaitSecs": {
+            "title": "Wait for dynamic content (seconds)",
+            "type": "integer",
+            "description": "The maximum time to wait for dynamic page content to load. The crawler will continue either if this time elapses, or if it detects the network became idle as there are no more requests for additional resources.",
+            "default": 0,
+            "minimum": 0,
+            "maximum": 10
+        },
         "removeLinkUrls": {
             "title": "Remove link URLs",
             "type": "boolean",
             "description": "Removes web link URLs while keeping the text content they display.\n- This helps reduce the total page content by eliminating unnecessary URLs before sending to GPT\n- Useful if you are hitting maximum input tokens limits",
-            "editor": "checkbox"
+            "editor": "checkbox",
+            "default": false
         },
         "useStructureOutput": {
             "sectionCaption": "JSON formatted output",
