@@ -8,6 +8,7 @@ import { OpenAIModelSettings } from './models.js';
  * Parsed input configuration.
  */
 export interface Config {
+    dynamicContentWaitSecs: number;
     excludeUrlGlobs?: GlobInput[];
     includeUrlGlobs?: GlobInput[];
     initialCookies?: Cookie[];

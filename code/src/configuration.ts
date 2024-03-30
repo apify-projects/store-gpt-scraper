@@ -16,6 +16,7 @@ const ajv = new Ajv.default();
  */
 export const parseConfiguration = async (input: Input): Promise<Config> => {
     const {
+        dynamicContentWaitSecs = 0,
         excludeUrlGlobs,
         includeUrlGlobs,
         initialCookies,
@@ -51,6 +52,7 @@ export const parseConfiguration = async (input: Input): Promise<Config> => {
     const maxCrawlingDepth = input.maxCrawlingDepth || Number.POSITIVE_INFINITY;
 
     return {
+        dynamicContentWaitSecs,
         excludeUrlGlobs,
         includeUrlGlobs,
         initialCookies,

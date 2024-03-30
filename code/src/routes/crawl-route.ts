@@ -1,5 +1,7 @@
 import { Actor } from 'apify';
-import { Dataset, KeyValueStore, NonRetryableError, PlaywrightCrawlingContext, log, utils } from 'crawlee';
+import { Dataset, KeyValueStore, NonRetryableError, PlaywrightCrawlingContext, log, sleep, utils } from 'crawlee';
+import { Page } from 'playwright';
+
 import { validateInputCssSelectors } from '../configuration.js';
 import { ERROR_OCCURRED_MESSAGE, NonRetryableOpenaiAPIError, OpenaiAPIErrorToExitActor } from '../errors.js';
 import { getNumberOfTextTokens, htmlToMarkdown, maybeShortsTextByTokenLength, shrinkHtml } from '../processors.js';
@@ -17,6 +19,7 @@ export const crawlRoute = async (context: PlaywrightCrawlingContext) => {
 
     const state = await crawler.useState<CrawlerState>();
     const {
+        dynamicContentWaitSecs,
         excludeUrlGlobs,
         includeUrlGlobs,
         instructions,
@@ -64,6 +67,7 @@ export const crawlRoute = async (context: PlaywrightCrawlingContext) => {
 
     log.info(`Opening ${url}...`);
 
+    await waitForDynamicContent(page, dynamicContentWaitSecs);
     await closeCookieModals();
 
     // Enqueue links
@@ -208,4 +212,15 @@ export const crawlRoute = async (context: PlaywrightCrawlingContext) => {
             apiCallsCount: model.stats.apiCallsCount,
         },
     });
+};
+
+/**
+ * Waits for dynamic content to load on the page.
+ * - Waits for the given `timeoutS` to pass, but breaks early if the network is idle (loaded all resources).
+ */
+const waitForDynamicContent = async (page: Page, timeoutS: number) => {
+    const networkIdlePromise = page.waitForLoadState('networkidle');
+    const timeoutPromise = sleep(timeoutS * 1000);
+
+    return Promise.race([networkIdlePromise, timeoutPromise]);
 };

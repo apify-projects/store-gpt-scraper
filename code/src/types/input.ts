@@ -8,6 +8,7 @@ import { ValuesOf } from './utils.js';
  * Input schema in TypeScript format.
  */
 export type Input = (OpenAIModelSettings & DeprecatedInput) & {
+    dynamicContentWaitSecs?: number;
     startUrls: RequestOptions[];
     includeUrlGlobs?: GlobInput[];
     excludeUrlGlobs?: GlobInput[];
