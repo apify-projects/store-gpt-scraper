@@ -1,6 +1,11 @@
 This changelog tracks updates to both GTP Scraper and Extended GPT Scraper actors.
 
-# 2023-03-05
+# 2024-03-05
+*Features*
+- Added option to wait for a specific time and let the page load before scraping, useful for dynamic pages. (`dynamicContentWaitSecs`)
+- Added option to remove link URLs while keeping their displayed text. Helps to reduce the amount of content sent to GPT. (`removeLinkUrls`)
+
+# 2024-03-05
 *Features*
 - Added separate schema description field (input `schemaDescription`). By default the value is taken from `instructions` input.
 - Refactored and improved the Actor's input schema to be more user-friendly.
@@ -8,19 +13,19 @@ This changelog tracks updates to both GTP Scraper and Extended GPT Scraper actor
 *Fixes*
 - Properly handle OpenAI's schema description too long error.
 
-# 2023-01-31
+# 2024-01-31
 *Fixes*
 - Eliminated the bug, when on some sites that contain erronous javascript the scraper would fail
 
-### 2023-01-26
+### 2024-01-26
 *Fixes*
 - Fixed "max pages per run" not working correctly on specific websites.
 
-### 2023-01-21
+### 2024-01-21
 *Fixes*
 - Fixed a bug where the Actor would fail on "repetitive patterns in prompt" error from OpenAI. The Actor will now gracefully skip GPT processing for the webpages that trigger the error.
 
-### 2023-01-10
+### 2024-01-10
 *Features*
 - Added `excludeUrlGlobs` and renamed `globs` to `includeUrlGlobs`, the old `globs` input will still work the same.
 - Added `initialCookies` to be able to extract data behind login.
