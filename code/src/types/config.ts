@@ -1,7 +1,7 @@
 import { AnySchema } from 'ajv';
 import { Cookie, GlobInput, ProxyConfiguration, Request } from 'crawlee';
-import { OpenAIModelHandler } from '../models/openai.js';
 import { PAGE_FORMAT } from './input.js';
+import { ModelConfig } from './model.js';
 import { OpenAIModelSettings } from './models.js';
 
 /**
@@ -16,7 +16,7 @@ export interface Config {
     linkSelector?: string;
     maxCrawlingDepth: number;
     maxPagesPerCrawl: number;
-    model: OpenAIModelHandler;
+    modelConfig: ModelConfig;
     modelSettings: OpenAIModelSettings;
     pageFormat: PAGE_FORMAT;
     proxyConfiguration?: ProxyConfiguration;

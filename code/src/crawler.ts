@@ -61,7 +61,7 @@ export const createCrawler = async (config: Config) => {
         },
     });
 
-    const defaultCrawlerState = { pagesOpened: 0, config };
+    const defaultCrawlerState = getInitialCrawlerState(config);
     await crawler.useState<CrawlerState>(defaultCrawlerState);
 
     await crawler.addRequests(requests);
@@ -76,4 +76,14 @@ export const createCrawler = async (config: Config) => {
         return oldCrawlerLogError(...args);
     };
     return crawler;
+};
+
+const getInitialCrawlerState = (config: Config): CrawlerState => {
+    const modelStats = {
+        apiCallsCount: 0,
+        usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
+        usdUsage: 0,
+    };
+
+    return { config, pagesOpened: 0, modelStats };
 };

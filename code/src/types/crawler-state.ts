@@ -1,6 +1,8 @@
 import { Config } from './config.js';
+import { ModelStats } from './model.js';
 
 export interface CrawlerState {
-    pagesOpened: number;
     config: Config;
+    pagesOpened: number;
+    modelStats: ModelStats;
 }

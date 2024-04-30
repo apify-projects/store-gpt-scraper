@@ -2,10 +2,10 @@ import Ajv, { AnySchema } from 'ajv';
 import { Actor } from 'apify';
 import { Cookie, RequestList, log } from 'crawlee';
 import { Page } from 'playwright';
-import { getModelByName } from './models/models.js';
-import { OpenAIModelHandler } from './models/openai.js';
+import { getModelConfigByName } from './models/models.js';
 import { Config } from './types/config.js';
 import { Input, PAGE_FORMAT } from './types/input.js';
+import { ModelConfig } from './types/model.js';
 import { OpenAIModelSettings } from './types/models.js';
 
 // eslint-disable-next-line new-cap
@@ -31,10 +31,10 @@ export const parseConfiguration = async (input: Input): Promise<Config> => {
         targetSelector,
     } = input;
 
-    const model = getModelByName(input.model);
-    if (!model) throw await Actor.fail(`Model ${input.model} is not supported`);
+    const modelConfig = getModelConfigByName(input.model);
+    if (!modelConfig) throw await Actor.fail(`Model ${input.model} is not supported`);
 
-    const { schema, schemaDescription } = await parseSchemaConfig(input, model);
+    const { schema, schemaDescription } = await parseSchemaConfig(input, modelConfig);
 
     const modelSettings = await parseOpenaiModelSettings(input);
 
@@ -61,7 +61,7 @@ export const parseConfiguration = async (input: Input): Promise<Config> => {
         linkSelector,
         maxCrawlingDepth,
         maxPagesPerCrawl,
-        model,
+        modelConfig,
         modelSettings,
         pageFormat: pageFormatInRequest,
         proxyConfiguration,
@@ -86,14 +86,14 @@ export const validateInputCssSelectors = async (config: Config, page: Page) => {
     await validateInputCssSelector(removeElementsCssSelector, 'removeElementsCssSelector', page);
 };
 
-const parseSchemaConfig = async (input: Input, model: OpenAIModelHandler) => {
-    const modelSupportsSchema = model.modelConfig.interface === 'chat';
+const parseSchemaConfig = async (input: Input, model: ModelConfig) => {
+    const modelSupportsSchema = model.interface === 'chat';
     const useSchema = input.useStructureOutput && input.schema && modelSupportsSchema;
     const schema = useSchema ? await validateSchemaOrFail(input.schema) : undefined;
 
     const isUnsupportedSchemaModel = input.useStructureOutput && input.schema && !modelSupportsSchema;
     if (isUnsupportedSchemaModel) {
-        log.warning(`Schema is not supported for model ${model.modelConfig.modelName}! Ignoring schema.`);
+        log.warning(`Schema is not supported for model ${model.modelName}! Ignoring schema.`);
     }
 
     const useInstructionsForSchemaDescription = useSchema && !input.schemaDescription && input.instructions;

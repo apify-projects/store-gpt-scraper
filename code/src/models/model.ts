@@ -6,11 +6,9 @@ import { ModelConfig, ModelStats, ProcessInstructionsOptions, ProcessedInstructi
 
 export abstract class GeneralModelHandler<ModelSettings extends object> {
     modelConfig: ModelConfig;
-    stats: ModelStats;
 
     constructor(modelConfig: ModelConfig) {
         this.modelConfig = modelConfig;
-        this.stats = this.initStats();
     }
 
     /**
@@ -22,22 +20,24 @@ export abstract class GeneralModelHandler<ModelSettings extends object> {
      * Calls `processInstructions` and retries it if the API call fails.
      */
     abstract processInstructionsWithRetry(
-        options: ProcessInstructionsOptions<ModelSettings>,
+        options: ProcessInstructionsOptions<ModelSettings>
     ): Promise<ProcessedInstructions>;
 
     /**
      * Updates the stats with the given usage.
      */
-    public updateApiCallUsage(newUsage: Usage) {
-        this.stats.apiCallsCount += 1;
-        Object.keys(this.stats.usage).forEach((key: string) => {
-            // @ts-ignore
-            this.stats.usage[key] += newUsage[key] || 0;
-        });
+    public updateApiCallUsage(newUsage: Usage, modelStats: ModelStats) {
+        const { usage } = modelStats;
+
+        modelStats.apiCallsCount += 1;
+
+        usage.promptTokens += newUsage.promptTokens;
+        usage.completionTokens += newUsage.completionTokens;
+        usage.totalTokens += newUsage.totalTokens;
 
         if (!this.modelConfig.cost) return;
-        this.stats.finalCostUSD += this.modelConfig.cost.input * (newUsage.promptTokens / 1000);
-        this.stats.finalCostUSD += this.modelConfig.cost.output * (newUsage.completionTokens / 1000);
+        modelStats.usdUsage += this.modelConfig.cost.input * (newUsage.promptTokens / 1000);
+        modelStats.usdUsage += this.modelConfig.cost.output * (newUsage.completionTokens / 1000);
     }
 
     /**
@@ -68,15 +68,4 @@ export abstract class GeneralModelHandler<ModelSettings extends object> {
 
         return new LLMChain({ prompt, llm: model });
     };
-
-    /**
-     * Builds and returns an empty model stats object. Used in constructor.
-     */
-    private initStats(): ModelStats {
-        return {
-            apiCallsCount: 0,
-            usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
-            finalCostUSD: 0,
-        };
-    }
 }

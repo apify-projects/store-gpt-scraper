@@ -4,6 +4,7 @@ import { Page } from 'playwright';
 
 import { validateInputCssSelectors } from '../configuration.js';
 import { ERROR_OCCURRED_MESSAGE, NonRetryableOpenaiAPIError, OpenaiAPIErrorToExitActor } from '../errors.js';
+import { OpenAIModelHandler } from '../models/openai.js';
 import { getNumberOfTextTokens, htmlToMarkdown, maybeShortsTextByTokenLength, shrinkHtml } from '../processors.js';
 import { CrawlerState } from '../types/crawler-state.js';
 import { PAGE_FORMAT } from '../types/input.js';
@@ -18,6 +19,7 @@ export const crawlRoute = async (context: PlaywrightCrawlingContext) => {
     const kvStore = await KeyValueStore.open();
 
     const state = await crawler.useState<CrawlerState>();
+    const { config, modelStats } = state;
     const {
         dynamicContentWaitSecs,
         excludeUrlGlobs,
@@ -26,7 +28,7 @@ export const crawlRoute = async (context: PlaywrightCrawlingContext) => {
         linkSelector,
         maxCrawlingDepth,
         maxPagesPerCrawl,
-        model,
+        modelConfig,
         modelSettings,
         pageFormat,
         removeElementsCssSelector,
@@ -36,7 +38,9 @@ export const crawlRoute = async (context: PlaywrightCrawlingContext) => {
         schemaDescription,
         skipGptGlobs,
         targetSelector,
-    } = state.config;
+    } = config;
+
+    const model = new OpenAIModelHandler(modelConfig);
 
     const { depth = 0 } = request.userData;
     const isFirstPage = state.pagesOpened === 0;
@@ -63,7 +67,7 @@ export const crawlRoute = async (context: PlaywrightCrawlingContext) => {
     }
     const url = request.loadedUrl || request.url;
 
-    if (isFirstPage) await validateInputCssSelectors(state.config, page);
+    if (isFirstPage) await validateInputCssSelectors(config, page);
 
     log.info(`Opening ${url}...`);
 
@@ -160,7 +164,7 @@ export const crawlRoute = async (context: PlaywrightCrawlingContext) => {
         });
         answer = answerResult.answer;
         jsonAnswer = answerResult.jsonAnswer;
-        model.updateApiCallUsage(answerResult.usage);
+        model.updateApiCallUsage(answerResult.usage, modelStats);
     } catch (error: any) {
         if (error instanceof OpenaiAPIErrorToExitActor) {
             throw await Actor.fail(error.message);
@@ -185,11 +189,7 @@ export const crawlRoute = async (context: PlaywrightCrawlingContext) => {
         return;
     }
 
-    log.info(`Page ${url} processed.`, {
-        openaiUsage: model.stats.usage,
-        usdUsage: model.stats.finalCostUSD,
-        apiCallsCount: model.stats.apiCallsCount,
-    });
+    log.info(`Page ${url} processed.`, modelStats);
 
     // Store the results
     await Dataset.pushData({
@@ -207,9 +207,7 @@ export const crawlRoute = async (context: PlaywrightCrawlingContext) => {
             : undefined,
         '#debug': {
             modelName: model.modelConfig.modelName,
-            openaiUsage: model.stats.usage,
-            usdUsage: model.stats.finalCostUSD,
-            apiCallsCount: model.stats.apiCallsCount,
+            modelStats,
         },
     });
 };

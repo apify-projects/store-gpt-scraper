@@ -37,6 +37,6 @@ export interface ProcessedInstructions {
 
 export interface ModelStats {
     apiCallsCount: number;
+    usdUsage: number;
     usage: Usage;
-    finalCostUSD: number;
 }

@@ -1,31 +1,20 @@
 import { ModelConfig } from '../types/model.js';
-import { OpenAIModelHandler } from './openai.js';
-
-type AllModelHandlers = typeof OpenAIModelHandler; // Add more model handlers here if needed
-
-type ModelsGroup = { [modelKey: string]: ModelConfig };
-type ModelsGroups = { [modelGroupKey: string]: { models: ModelsGroup; ModelHandler: AllModelHandlers } };
 
 /**
  * Returns the corresponding model configuration and handler for the given model name.
  * - Returns null if the model name is not found.
  */
-export const getModelByName = (modelName: string): InstanceType<AllModelHandlers> | null => {
-    for (const modelsGroup of Object.values(MODELS_GROUPS)) {
-        if (!(modelName in modelsGroup.models)) continue;
+export const getModelConfigByName = (modelName: string): ModelConfig | null => {
+    if (!(modelName in OPEN_AI_MODELS)) return null;
 
-        const modelConfig = modelsGroup.models[modelName];
-        return new modelsGroup.ModelHandler(modelConfig);
-    }
-
-    return null;
+    return OPEN_AI_MODELS[modelName];
 };
 
 /**
  * List of OpenAI models that can be used.
  * Should be in sync with https://platform.openai.com/docs/models/
  */
-const OPEN_AI_MODELS: ModelsGroup = {
+const OPEN_AI_MODELS: { [modelKey: string]: ModelConfig } = {
     'text-davinci-003': {
         modelName: 'text-davinci-003',
         maxTokens: 4097,
@@ -86,8 +75,4 @@ const OPEN_AI_MODELS: ModelsGroup = {
             output: 0.03,
         },
     },
-} as const;
-
-export const MODELS_GROUPS: ModelsGroups = {
-    OpenAI: { models: OPEN_AI_MODELS, ModelHandler: OpenAIModelHandler },
 } as const;
