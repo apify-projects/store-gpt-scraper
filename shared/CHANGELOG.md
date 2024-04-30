@@ -1,5 +1,9 @@
 This changelog tracks updates to both GTP Scraper and Extended GPT Scraper actors.
 
+# 2024-05-01
+*Fixes*
+- Fixed Actor resurrection bug that caused the Actor to not process GPT after being resurrected.
+
 # 2024-03-05
 *Features*
 - Added option to wait for a specific time and let the page load before scraping, useful for dynamic pages. (`dynamicContentWaitSecs`)
