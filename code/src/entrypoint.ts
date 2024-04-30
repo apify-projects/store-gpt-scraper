@@ -1,4 +1,5 @@
 import { Actor, log } from 'apify';
+
 import { getOpenAiApiKeyEnvOrFail } from './input.js';
 import { main } from './main.js';
 import { ACTORS } from './types/actors.js';

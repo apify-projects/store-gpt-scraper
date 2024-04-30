@@ -1,5 +1,6 @@
 import { Actor } from 'apify';
 import { PlaywrightCrawlingContext } from 'crawlee';
+
 import { CrawlerState } from '../types/crawler-state.js';
 
 /**
@@ -21,6 +22,6 @@ export const initialCookiesHook = async (context: PlaywrightCrawlingContext) => 
         session?.setCookies(newCookiesToAdd, request.url);
         await page.context().addCookies(newCookiesToAdd);
     } catch (e) {
-        Actor.fail(`INVALID INPUT: invalid cookie(s) in 'initialCookies'! \n\t${e}`);
+        await Actor.fail(`INVALID INPUT: invalid cookie(s) in 'initialCookies'! \n\t${e}`);
     }
 };

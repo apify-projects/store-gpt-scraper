@@ -2,6 +2,7 @@ import Ajv, { AnySchema } from 'ajv';
 import { Actor } from 'apify';
 import { Cookie, RequestList, log } from 'crawlee';
 import { Page } from 'playwright';
+
 import { getModelConfigByName } from './models/models.js';
 import { Config } from './types/config.js';
 import { Input, PAGE_FORMAT } from './types/input.js';
@@ -119,7 +120,8 @@ const validateSchemaOrFail = async (schema: AnySchema | undefined): Promise<AnyS
     try {
         ajv.compile(schema);
         return schema;
-    } catch (e: any) {
+    } catch (e) {
+        if (!(e instanceof Error)) throw e;
         log.error(`Schema is not valid: ${e.message}`, { error: e });
         await Actor.fail(
             'Schema is not valid. Go to Actor run log, '

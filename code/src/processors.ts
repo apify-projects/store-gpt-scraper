@@ -1,5 +1,6 @@
 import { encode } from 'gpt-3-encoder';
 import { Page } from 'playwright';
+
 import { htmlToMarkdownProcessor } from './markdown.js';
 
 const JSON_REGEX = /\{(?:[^{}]|())*\}/;

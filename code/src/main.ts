@@ -1,4 +1,5 @@
 import { log } from 'crawlee';
+
 import { parseConfiguration } from './configuration.js';
 import { createCrawler } from './crawler.js';
 import { adjustDeprecatedInput } from './input.js';

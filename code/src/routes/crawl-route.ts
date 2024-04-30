@@ -165,7 +165,7 @@ export const crawlRoute = async (context: PlaywrightCrawlingContext) => {
         answer = answerResult.answer;
         jsonAnswer = answerResult.jsonAnswer;
         model.updateApiCallUsage(answerResult.usage, modelStats);
-    } catch (error: any) {
+    } catch (error) {
         if (error instanceof OpenaiAPIErrorToExitActor) {
             throw await Actor.fail(error.message);
         }

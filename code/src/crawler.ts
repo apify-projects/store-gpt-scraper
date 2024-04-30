@@ -1,4 +1,5 @@
 import { Dataset, NonRetryableError, PlaywrightCrawler, createRequestDebugInfo, log } from 'crawlee';
+
 import { crawlRoute } from './routes/crawl-route.js';
 import { Config } from './types/config.js';
 import { CrawlerState } from './types/crawler-state.js';

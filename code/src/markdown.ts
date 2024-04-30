@@ -1,7 +1,6 @@
-/* eslint-disable  @typescript-eslint/no-unused-vars */
-import TurndownService from 'turndown';
-// @ts-ignore
+// @ts-expect-error - This package has no typings
 import plugin from 'joplin-turndown-plugin-gfm';
+import TurndownService from 'turndown';
 
 /*
 const cleanWhitespaces = (attribute?: string) => {

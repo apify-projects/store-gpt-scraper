@@ -1,4 +1,5 @@
 import { Actor } from 'apify';
+
 import { Input } from './types/input.js';
 
 /**

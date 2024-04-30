@@ -1,8 +1,9 @@
+import { ChatOpenAI, OpenAI } from '@langchain/openai';
 import { AnySchema } from 'ajv';
 import { log, sleep } from 'crawlee';
-import { ChatOpenAI } from 'langchain/chat_models/openai';
-import { OpenAI } from 'langchain/llms/openai';
 import { LLMResult } from 'langchain/schema';
+
+import { GeneralModelHandler } from './model.js';
 import {
     DESCRIPTION_LENGTH_ERROR,
     DESCRIPTION_LENGTH_ERROR_LOG_MESSAGE,
@@ -13,9 +14,9 @@ import {
     RateLimitedError,
 } from '../errors.js';
 import { tryToParseJsonFromString } from '../processors.js';
+import { FunctionArgumentsGenerations, LangchainError } from '../types/langchain-types.js';
 import { ProcessInstructionsOptions } from '../types/model.js';
 import { OpenAIModelSettings } from '../types/models.js';
-import { GeneralModelHandler } from './model.js';
 
 const MAX_GPT_RETRIES = 8;
 
@@ -26,8 +27,9 @@ const MAX_GPT_RETRIES = 8;
  *
  * see OpenAI errors documentation: https://platform.openai.com/docs/guides/error-codes/api-errors
  */
-const wrapInOpenaiError = (error: any): OpenaiAPIError => {
+const wrapInOpenaiError = (error: LangchainError): OpenaiAPIError => {
     const errorMessage = error.error?.message || error.code || error.message;
+    if (!errorMessage) return new OpenaiAPIError('Unknown error from langchain');
 
     // The error structure is completely different for insufficient quota errors. We need to handle it separately.
     if (error.name === 'InsufficientQuotaError') {
@@ -91,8 +93,8 @@ export class OpenAIModelHandler extends GeneralModelHandler<OpenAIModelSettings>
         for (let retry = 1; retry < MAX_GPT_RETRIES + 1; retry++) {
             try {
                 return await this.processInstructions(options);
-            } catch (error: any) {
-                const wrappedError = wrapInOpenaiError(error);
+            } catch (error) {
+                const wrappedError = wrapInOpenaiError(error as LangchainError);
 
                 if (wrappedError instanceof NonRetryableOpenaiAPIError) throw wrappedError;
 
@@ -133,7 +135,7 @@ export class OpenAIModelHandler extends GeneralModelHandler<OpenAIModelSettings>
      * Parses the function arguments from the OpenAI LLM's output.
      */
     private parseFunctionArguments = (functionOutput: LLMResult): string | null => {
-        const generations = functionOutput.generations as any;
+        const generations = functionOutput.generations as FunctionArgumentsGenerations;
         const firstFunction = generations?.[0]?.[0]?.message;
         const functionArguments = firstFunction?.lc_kwargs?.additional_kwargs?.function_call?.arguments;
 
