@@ -1,0 +1,14 @@
+cd code
+echo "pre-commit: typechecking, linting, testing & validating schemas"
+
+npm test
+# We typecheck & lint last when we know our code works
+npx tsc --noEmit
+npx lint-staged
+
+cd ../actors
+# Validates schemas in parallel with 8 processes
+# each opens separate shell with a command in quotes
+ls | xargs -P 8 -I {} sh -c 'cd {} && apify vis'
+
+echo "pre-commit: passed"
