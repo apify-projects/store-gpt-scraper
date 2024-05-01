@@ -142,3 +142,9 @@ export class OpenAIModelHandler extends GeneralModelHandler<OpenAIModelSettings>
         return functionArguments || null;
     };
 }
+
+/** Used for unit testing */
+// eslint-disable-next-line no-underscore-dangle
+export const _private = {
+    wrapInOpenaiError,
+};
