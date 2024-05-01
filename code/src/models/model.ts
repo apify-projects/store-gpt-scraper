@@ -1,5 +1,5 @@
+import { PromptTemplate } from '@langchain/core/prompts';
 import { LLMChain } from 'langchain/chains';
-import { PromptTemplate } from 'langchain/prompts';
 import { LLMResult } from 'langchain/schema';
 import { Runnable } from 'langchain/schema/runnable';
 
