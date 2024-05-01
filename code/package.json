@@ -29,7 +29,8 @@
         "@typescript-eslint/parser": "^7.3.1",
         "eslint": "^8.57.0",
         "tsx": "^4.7.1",
-        "typescript": "^5.4.2"
+        "typescript": "^5.4.2",
+        "vitest": "^1.5.3"
     },
     "scripts": {
         "start": "npm run start:dev",
@@ -38,7 +39,7 @@
         "build": "tsc",
         "lint": "eslint ./src --ext .ts",
         "lint:fix": "eslint ./src --ext .ts --fix",
-        "test": "echo \"Error: oops, the actor has no tests yet, sad!\" && exit 1",
+        "test": "vitest run",
         "postinstall": "npx crawlee install-playwright-browsers"
     },
     "author": "It's not you it's me",

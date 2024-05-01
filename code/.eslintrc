@@ -9,7 +9,7 @@
         "@apify/eslint-config-ts"
     ],
     "parserOptions": {
-        "project": "./tsconfig.json",
+        "project": "./tsconfig.eslint.json",
         "ecmaVersion": 2020
     },
     "ignorePatterns": [
