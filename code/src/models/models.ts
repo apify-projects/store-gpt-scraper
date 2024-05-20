@@ -75,4 +75,13 @@ const OPEN_AI_MODELS: { [modelKey: string]: ModelConfig } = {
             output: 0.03,
         },
     },
+    'gpt-4o': {
+        modelName: 'gpt-4o',
+        maxTokens: 128_000,
+        interface: 'chat',
+        cost: {
+            input: 0.005,
+            output: 0.015,
+        },
+    },
 } as const;

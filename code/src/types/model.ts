@@ -16,8 +16,10 @@ export interface Usage {
 }
 
 export interface Cost {
-    input: number; // USD cost per 1000 tokens
-    output: number; // USD cost per 1000 tokens
+    /** USD cost per 1000 tokens */
+    input: number;
+    /** USD cost per 1000 tokens */
+    output: number;
 }
 
 export interface ProcessInstructionsOptions<ModelSettings extends object> {
