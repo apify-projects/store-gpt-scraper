@@ -84,4 +84,13 @@ const OPEN_AI_MODELS: { [modelKey: string]: ModelConfig } = {
             output: 0.015,
         },
     },
+    'gpt-4o-mini': {
+        modelName: 'gpt-4o-mini',
+        maxTokens: 128_000,
+        interface: 'chat',
+        cost: {
+            input: 0.00015,
+            output: 0.0006,
+        },
+    },
 } as const;
