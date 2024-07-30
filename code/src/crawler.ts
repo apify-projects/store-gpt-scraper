@@ -15,8 +15,11 @@ export const createCrawler = async (config: Config) => {
                 headless: true,
             },
         },
-        /** The default values scale up and down too quickly for larger runs, these values are half that */
-        autoscaledPoolOptions: { scaleDownStepRatio: 0.025, scaleUpStepRatio: 0.025 },
+        /**
+         * The default value scale up too quickly for larger runs, this value is half that
+         * - Scaling down is still the default value, meaning the pool will scale down faster than it scales up
+         */
+        autoscaledPoolOptions: { scaleUpStepRatio: 0.025 },
         retryOnBlocked: true,
         requestHandlerTimeoutSecs: 3 * 60,
         proxyConfiguration,
