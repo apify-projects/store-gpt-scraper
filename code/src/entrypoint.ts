@@ -46,7 +46,7 @@ function adjustPprScraperInput(input: Input) {
     return {
         ...input,
         skipGptGlobs: [],
-        model: 'gpt-3.5-turbo',
+        model: 'DEFAULT_PPR_SCRAPER',
         openaiApiKey: getOpenAiApiKeyEnvOrFail(),
         actorType: ACTORS.PPR_PRICING,
     };

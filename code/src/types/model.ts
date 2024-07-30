@@ -7,6 +7,8 @@ export interface ModelConfig {
     maxOutputTokens?: number;
     interface: 'chat' | 'text';
     cost?: Cost;
+    /** Only used for cases where we need to limit the token limit earlier than the actual maximum (e.g. our PPR Actor) */
+    limitGenerationTokens?: true;
 }
 
 export interface Usage {
@@ -29,6 +31,7 @@ export interface ProcessInstructionsOptions<ModelSettings extends object> {
     modelSettings: ModelSettings;
     schema?: AnySchema;
     schemaDescription: string;
+    remainingTokens: number;
 }
 
 export interface ProcessedInstructions {
