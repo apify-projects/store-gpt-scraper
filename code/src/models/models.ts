@@ -93,4 +93,18 @@ const OPEN_AI_MODELS: { [modelKey: string]: ModelConfig } = {
             output: 0.0006,
         },
     },
+    /**
+     * Default scraper model that we use for the PPR scraper.
+     * - We limit the max tokens here so the price is capped.
+     */
+    DEFAULT_PPR_SCRAPER: {
+        modelName: 'gpt-4o-mini',
+        limitGenerationTokens: true,
+        maxTokens: 10_000,
+        interface: 'chat',
+        cost: {
+            input: 0.00015,
+            output: 0.0006,
+        },
+    },
 } as const;
