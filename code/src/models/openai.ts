@@ -54,13 +54,16 @@ const wrapInOpenaiError = (error: LangchainError): OpenaiAPIError => {
 
 export class OpenAIModelHandler extends GeneralModelHandler<OpenAIModelSettings> {
     async processInstructions(options: ProcessInstructionsOptions<OpenAIModelSettings>) {
-        const { instructions, content, schema, schemaDescription, modelSettings } = options;
+        const { instructions, content, schema, schemaDescription, modelSettings, remainingTokens } = options;
+        const { modelName, limitGenerationTokens, maxTokens } = this.modelConfig;
+
         log.debug(`Calling Openai API with model ${this.modelConfig.modelName}`);
 
         const handleLLMEndCallback = this.handleLLMEndCallbackHandler();
         const modelOptions = {
             ...modelSettings,
-            modelName: this.modelConfig.modelName,
+            modelName,
+            maxTokens: limitGenerationTokens ? remainingTokens : maxTokens,
             callbacks: [{ handleLLMEnd: handleLLMEndCallback.handleLLMEnd }],
         };
 

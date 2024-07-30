@@ -152,6 +152,7 @@ export const crawlRoute = async (context: PlaywrightCrawlingContext) => {
     } else {
         log.info(`Processing page ${url} with GPT instruction...`, { contentLength: pageContent.length });
     }
+    const remainingTokens = getNumberOfTextTokens(pageContent) + instructionTokenLength;
 
     try {
         const answerResult = await model.processInstructionsWithRetry({
@@ -160,6 +161,7 @@ export const crawlRoute = async (context: PlaywrightCrawlingContext) => {
             schema,
             schemaDescription,
             modelSettings,
+            remainingTokens,
             apifyClient: Actor.apifyClient,
         });
         answer = answerResult.answer;
