@@ -1,5 +1,11 @@
 This changelog tracks updates to both GTP Scraper and Extended GPT Scraper actors.
 
+# 2024-07-30
+*Features*
+- Added support for GPT-4o-mini model. (Extended GPT scraper)
+- Set this model as the default one for the the *Pay Per Result* scraper with a set token limit.
+  - With this, the maximum token limit for the *Pay Per Result* scraper was increased by 150%.
+
 # 2024-05-20
 *Features*
 - Added support for GPT-4o model. (Extended GPT Scraper only)
