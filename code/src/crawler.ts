@@ -11,8 +11,8 @@ export const createCrawler = async (config: Config) => {
     const crawler = new PlaywrightCrawler({
         launchContext: {
             launchOptions: {
-                // TODO: Just headless
-                headless: true,
+                /** We intentionally ignore these errors, because some broken websites would otherwise not be scraped */
+                args: ['--ignore-certificate-errors'],
             },
         },
         /**
