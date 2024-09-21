@@ -1,5 +1,5 @@
+import { load } from 'cheerio';
 import { encode } from 'gpt-3-encoder';
-import { Page } from 'playwright';
 
 import { htmlToMarkdownProcessor } from './markdown.js';
 
@@ -7,45 +7,27 @@ const JSON_REGEX = /\{(?:[^{}]|())*\}/;
 
 /**
  * Shrinks HTML by removing css targeted elements and extra spaces
- * @param html
  */
 export const shrinkHtml = async (
     html: string,
-    page: Page,
     options: { removeLinkUrls: boolean; removeElementsCssSelector?: string },
 ) => {
     const { removeElementsCssSelector, removeLinkUrls } = options;
 
-    const stripped = await page.evaluate(
-        // eslint-disable-next-line @typescript-eslint/no-shadow
-        ([unstripped, removeSelector, removeLinkUrls]) => {
-            const doc = new DOMParser().parseFromString(unstripped, 'text/html');
-            if (removeSelector) {
-                const elements = doc.querySelectorAll(removeSelector);
-                for (const element of elements) {
-                    // there have been some cases when the page's own scripts cause errors and running this line
-                    // causes them to reemerge, so what in try/cartch
-                    try {
-                        element.remove();
-                    } catch (err) {
-                        /* ignore */
-                    }
-                }
-            }
+    const $ = load(html);
 
-            if (removeLinkUrls) {
-                const linkEls = doc.querySelectorAll('a');
-                for (const linkEl of linkEls) {
-                    linkEl.removeAttribute('href');
-                }
-            }
+    if (removeElementsCssSelector) {
+        $(removeElementsCssSelector).map((_, el) => $(el).remove());
+    }
+    if (removeLinkUrls) {
+        $('a').map((_, el) => $(el).removeAttr('href'));
+    }
 
-            return doc.documentElement.outerHTML;
-        },
-        [html, removeElementsCssSelector, removeLinkUrls] as const,
-    );
-    return stripped.replace(/\s{2,}/g, ' ') // remove extra spaces
-        .replace(/>\s+</g, '><'); // remove all spaces between tags
+    const stripped = $.html();
+    return stripped
+        .replace(/\s{2,}/g, ' ') // remove extra spaces
+        .replace(/>\s+</g, '><') // remove all spaces between tags
+        .replace(/^<!DOCTYPE[^>]*>/i, ''); // remove doctype
 };
 
 /**

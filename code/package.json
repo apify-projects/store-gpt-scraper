@@ -13,6 +13,7 @@
         "ajv-formats": "^2.1.1",
         "apify": "^3.1.16",
         "apify-client": "^2.9.3",
+        "cheerio": "^1.0.0",
         "crawlee": "^3.8.1",
         "gpt-3-encoder": "^1.1.4",
         "joplin-turndown-plugin-gfm": "^1.0.12",
