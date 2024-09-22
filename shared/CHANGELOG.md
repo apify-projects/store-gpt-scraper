@@ -1,5 +1,9 @@
 This changelog tracks updates to both GTP Scraper and Extended GPT Scraper actors.
 
+# 2024-09-22
+*Fixes*
+- Fixed a bug where HTML minimization was failing on some specific websites.
+
 # 2024-08-12
 *Features*
 - Added support for GPT-4o-mini model. (Extended GPT scraper)

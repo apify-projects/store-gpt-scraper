@@ -114,7 +114,7 @@ export const crawlRoute = async (context: PlaywrightCrawlingContext) => {
         originContentHtml = await page.content();
     }
 
-    const shrunkHtml = await shrinkHtml(originContentHtml, page, { removeLinkUrls, removeElementsCssSelector });
+    const shrunkHtml = await shrinkHtml(originContentHtml, { removeLinkUrls, removeElementsCssSelector });
     const originPageContent = pageFormat === PAGE_FORMAT.MARKDOWN ? htmlToMarkdown(shrunkHtml) : shrunkHtml;
 
     const instructionTokenLength = getNumberOfTextTokens(instructions);
