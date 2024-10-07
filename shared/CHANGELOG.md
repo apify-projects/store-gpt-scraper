@@ -1,5 +1,9 @@
 This changelog tracks updates to both GTP Scraper and Extended GPT Scraper actors.
 
+# 2024-10-07
+*Fixes*
+- Fixed initial cookies not being set correctly from input.
+
 # 2024-09-22
 *Fixes*
 - Fixed a bug where HTML minimization was failing on some specific websites.
