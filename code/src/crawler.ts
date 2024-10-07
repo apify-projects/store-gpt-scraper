@@ -1,5 +1,6 @@
 import { Dataset, NonRetryableError, PlaywrightCrawler, createRequestDebugInfo, log } from 'crawlee';
 
+import { initialCookiesHook } from './hooks/initial-cookies.js';
 import { crawlRoute } from './routes/crawl-route.js';
 import { Config } from './types/config.js';
 import { CrawlerState } from './types/crawler-state.js';
@@ -26,6 +27,7 @@ export const createCrawler = async (config: Config) => {
         maxRequestsPerCrawl: maxPagesPerCrawl,
         requestHandler: crawlRoute,
         preNavigationHooks: [
+            initialCookiesHook,
             async () => {
                 const state = await crawler.useState<CrawlerState>();
                 if (state.pagesOpened >= maxPagesPerCrawl) {
