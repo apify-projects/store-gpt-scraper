@@ -1,7 +1,14 @@
-import { Dataset, NonRetryableError, PlaywrightCrawler, createRequestDebugInfo, log } from 'crawlee';
+import {
+    Dataset,
+    NonRetryableError,
+    PlaywrightCrawler,
+    PlaywrightCrawlingContext,
+    createRequestDebugInfo,
+    log,
+} from 'crawlee';
 
 import { initialCookiesHook } from './hooks/initial-cookies.js';
-import { crawlRoute } from './routes/crawl-route.js';
+import { LABELS, router } from './routes/router.js';
 import { Config } from './types/config.js';
 import { CrawlerState } from './types/crawler-state.js';
 import { ERROR_TYPE } from './utils.js';
@@ -20,15 +27,19 @@ export const createCrawler = async (config: Config) => {
          * The default value scale up too quickly for larger runs, this value is half that
          * - Scaling down is still the default value, meaning the pool will scale down faster than it scales up
          */
-        autoscaledPoolOptions: { scaleUpStepRatio: 0.025 },
+        autoscaledPoolOptions: { scaleUpStepRatio: 0.015 },
         retryOnBlocked: true,
         requestHandlerTimeoutSecs: 3 * 60,
         proxyConfiguration,
-        maxRequestsPerCrawl: maxPagesPerCrawl,
-        requestHandler: crawlRoute,
+        requestHandler: router,
         preNavigationHooks: [
             initialCookiesHook,
-            async () => {
+            async (context: PlaywrightCrawlingContext) => {
+                const { label } = context.request;
+
+                const isCrawlRoute = label === LABELS.CRAWL;
+                if (!isCrawlRoute) return;
+
                 const state = await crawler.useState<CrawlerState>();
                 if (state.pagesOpened >= maxPagesPerCrawl) {
                     const err = new NonRetryableError('Skipping this page');
