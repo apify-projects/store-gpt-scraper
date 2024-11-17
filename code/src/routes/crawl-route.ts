@@ -7,13 +7,13 @@ import { OpenAIModelHandler } from '../models/openai.js';
 import { getNumberOfTextTokens, htmlToMarkdown, maybeShortsTextByTokenLength, shrinkHtml } from '../processors.js';
 import { CrawlerState } from '../types/crawler-state.js';
 import { PAGE_FORMAT } from '../types/input.js';
-import { GptRequestUserData } from '../types/user-data.js';
+import { CrawlRouteUserData, GptRequestUserData } from '../types/user-data.js';
 import { ERROR_TYPE, doesUrlMatchGlobs } from '../utils.js';
 
 /**
  * The main crawling route. Enqueues new URLs and processes the page by calling the GPT model.
  */
-export const crawlRoute = async (context: PlaywrightCrawlingContext) => {
+export const crawlRoute = async (context: PlaywrightCrawlingContext<CrawlRouteUserData>) => {
     const { request, page, enqueueLinks, closeCookieModals, crawler } = context;
 
     const kvStore = await KeyValueStore.open();
@@ -149,7 +149,7 @@ export const crawlRoute = async (context: PlaywrightCrawlingContext) => {
     }
     const remainingTokens = getNumberOfTextTokens(pageContent) + instructionTokenLength;
 
-    const userData = { pageContent, remainingTokens, snapshotKey, pageUrl: url, sentContentKey };
+    const userData = { ...request.userData, pageContent, remainingTokens, snapshotKey, pageUrl: url, sentContentKey };
     const gptRequest = new Request<GptRequestUserData>({
         userData,
         uniqueKey: snapshotKey,

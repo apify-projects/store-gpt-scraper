@@ -24,10 +24,10 @@ export const createCrawler = async (config: Config) => {
             },
         },
         /**
-         * The default value scale up too quickly for larger runs, this value is half that
-         * - Scaling down is still the default value, meaning the pool will scale down faster than it scales up
+         * The default values scale up too quickly for larger runs, this will make the scaling more gradual.
+         * - Scaling down is also set to be faster, as with playwright crawler, there are a lot of timeouts
          */
-        autoscaledPoolOptions: { scaleUpStepRatio: 0.015 },
+        autoscaledPoolOptions: { scaleUpStepRatio: 0.015, scaleDownStepRatio: 0.1 },
         retryOnBlocked: true,
         requestHandlerTimeoutSecs: 3 * 60,
         proxyConfiguration,
