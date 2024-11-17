@@ -4,7 +4,7 @@ export type UserData = {
 
 export type CrawlRouteUserData = UserData & {
     depth?: number;
-    wasOpenedKey: string;
+    wasOpenedKey?: string;
 };
 
 export type GptRequestUserData = {

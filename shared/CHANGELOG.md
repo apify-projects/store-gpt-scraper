@@ -1,5 +1,10 @@
 This changelog tracks updates to both GTP Scraper and Extended GPT Scraper actors.
 
+# 2024-11-17
+*Features*
+- Improved GPT call handling, which should parallelize the calls together with the crawling better.
+- Added error results to output, which will contain the failed website URL to help with debugging and error handling.
+
 # 2024-10-07
 *Fixes*
 - Fixed initial cookies not being set correctly from input.
