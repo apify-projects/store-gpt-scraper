@@ -1,6 +1,7 @@
 import { Actor } from 'apify';
 import { PlaywrightCrawlingContext } from 'crawlee';
 
+import { LABELS } from '../routes/router.js';
 import { CrawlerState } from '../types/crawler-state.js';
 
 /**
@@ -9,6 +10,10 @@ import { CrawlerState } from '../types/crawler-state.js';
  */
 export const initialCookiesHook = async (context: PlaywrightCrawlingContext) => {
     const { page, crawler, request, session } = context;
+    const { label } = request.userData;
+
+    const isCrawlRoute = label === LABELS.CRAWL;
+    if (!isCrawlRoute) return;
 
     const state = await crawler.useState<CrawlerState>();
     const { initialCookies } = state.config;

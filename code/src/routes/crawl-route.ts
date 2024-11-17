@@ -1,25 +1,25 @@
-import { Actor } from 'apify';
-import { Dataset, KeyValueStore, NonRetryableError, PlaywrightCrawlingContext, log, sleep, utils } from 'crawlee';
+import { KeyValueStore, NonRetryableError, PlaywrightCrawlingContext, Request, log, sleep, utils } from 'crawlee';
 import { Page } from 'playwright';
 
+import { LABELS } from './router.js';
 import { validateInputCssSelectors } from '../configuration.js';
-import { ERROR_OCCURRED_MESSAGE, NonRetryableOpenaiAPIError, OpenaiAPIErrorToExitActor } from '../errors.js';
 import { OpenAIModelHandler } from '../models/openai.js';
 import { getNumberOfTextTokens, htmlToMarkdown, maybeShortsTextByTokenLength, shrinkHtml } from '../processors.js';
 import { CrawlerState } from '../types/crawler-state.js';
 import { PAGE_FORMAT } from '../types/input.js';
+import { CrawlRouteUserData, GptRequestUserData } from '../types/user-data.js';
 import { ERROR_TYPE, doesUrlMatchGlobs } from '../utils.js';
 
 /**
  * The main crawling route. Enqueues new URLs and processes the page by calling the GPT model.
  */
-export const crawlRoute = async (context: PlaywrightCrawlingContext) => {
+export const crawlRoute = async (context: PlaywrightCrawlingContext<CrawlRouteUserData>) => {
     const { request, page, enqueueLinks, closeCookieModals, crawler } = context;
 
     const kvStore = await KeyValueStore.open();
 
     const state = await crawler.useState<CrawlerState>();
-    const { config, modelStats } = state;
+    const { config } = state;
     const {
         dynamicContentWaitSecs,
         excludeUrlGlobs,
@@ -29,13 +29,10 @@ export const crawlRoute = async (context: PlaywrightCrawlingContext) => {
         maxCrawlingDepth,
         maxPagesPerCrawl,
         modelConfig,
-        modelSettings,
         pageFormat,
         removeElementsCssSelector,
         removeLinkUrls,
         saveSnapshots,
-        schema,
-        schemaDescription,
         skipGptGlobs,
         targetSelector,
     } = config;
@@ -119,8 +116,6 @@ export const crawlRoute = async (context: PlaywrightCrawlingContext) => {
 
     const instructionTokenLength = getNumberOfTextTokens(instructions);
 
-    let answer = '';
-    let jsonAnswer: null | object;
     const contentMaxTokens = model.modelConfig.maxTokens * 0.9 - instructionTokenLength; // 10% buffer for answer
     const pageContent = maybeShortsTextByTokenLength(originPageContent, contentMaxTokens);
 
@@ -154,64 +149,16 @@ export const crawlRoute = async (context: PlaywrightCrawlingContext) => {
     }
     const remainingTokens = getNumberOfTextTokens(pageContent) + instructionTokenLength;
 
-    try {
-        const answerResult = await model.processInstructionsWithRetry({
-            instructions,
-            content: pageContent,
-            schema,
-            schemaDescription,
-            modelSettings,
-            remainingTokens,
-            apifyClient: Actor.apifyClient,
-        });
-        answer = answerResult.answer;
-        jsonAnswer = answerResult.jsonAnswer;
-        model.updateApiCallUsage(answerResult.usage, modelStats);
-    } catch (error) {
-        if (error instanceof OpenaiAPIErrorToExitActor) {
-            throw await Actor.fail(error.message);
-        }
-        if (error instanceof NonRetryableOpenaiAPIError) {
-            await Actor.setStatusMessage(ERROR_OCCURRED_MESSAGE, { level: 'WARNING' });
-            return log.warning(error.message, { url });
-        }
-        throw error;
-    }
-
-    const answerLowerCase = answer?.toLocaleLowerCase() || '';
-    if (
-        answerLowerCase.includes('skip this page')
-        || answerLowerCase.includes('skip this url')
-        || answerLowerCase.includes('skip the page')
-        || answerLowerCase.includes('skip the url')
-        || answerLowerCase.includes('skip url')
-        || answerLowerCase.includes('skip page')
-    ) {
-        log.info(`Skipping page ${url} from output, the key word "skip this page" was found in answer.`, { answer });
-        return;
-    }
-
-    log.info(`Page ${url} processed.`, modelStats);
-
-    // Store the results
-    await Dataset.pushData({
-        url,
-        answer,
-        jsonAnswer,
-        htmlSnapshotUrl: snapshotKey
-            ? `https://api.apify.com/v2/key-value-stores/${kvStore.id}/records/${snapshotKey}.html`
-            : undefined,
-        screenshotUrl: snapshotKey
-            ? `https://api.apify.com/v2/key-value-stores/${kvStore.id}/records/${snapshotKey}.jpg`
-            : undefined,
-        sentContentUrl: sentContentKey
-            ? `https://api.apify.com/v2/key-value-stores/${kvStore.id}/records/${sentContentKey}`
-            : undefined,
-        '#debug': {
-            modelName: model.modelConfig.modelName,
-            modelStats,
-        },
+    const userData = { ...request.userData, pageContent, remainingTokens, snapshotKey, pageUrl: url, sentContentKey };
+    const gptRequest = new Request<GptRequestUserData>({
+        userData,
+        uniqueKey: snapshotKey,
+        url: 'https://fakeUrl.com',
+        skipNavigation: true,
+        label: LABELS.GPT,
     });
+
+    await crawler.addRequests([gptRequest], { forefront: true });
 };
 
 /**
