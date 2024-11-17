@@ -1,17 +1,11 @@
-import {
-    Dataset,
-    NonRetryableError,
-    PlaywrightCrawler,
-    PlaywrightCrawlingContext,
-    createRequestDebugInfo,
-    log,
-} from 'crawlee';
+import { NonRetryableError, PlaywrightCrawler, PlaywrightCrawlingContext, createRequestDebugInfo } from 'crawlee';
 
 import { initialCookiesHook } from './hooks/initial-cookies.js';
 import { LABELS, router } from './routes/router.js';
 import { Config } from './types/config.js';
 import { CrawlerState } from './types/crawler-state.js';
-import { ERROR_TYPE } from './utils.js';
+import { UserData } from './types/user-data.js';
+import { ERROR_TYPE, saveErrorResult } from './utils.js';
 
 export const createCrawler = async (config: Config) => {
     const { maxPagesPerCrawl, proxyConfiguration, requests } = config;
@@ -59,23 +53,19 @@ export const createCrawler = async (config: Config) => {
             },
         ],
 
-        async failedRequestHandler({ request }, error: Error) {
-            if (error.name === ERROR_TYPE.LIMIT_ERROR) {
-                return;
-            }
-            const errorMessage = error.message || 'no error';
-            const url = request.loadedUrl || request.url;
-            log.error(`Request ${url} failed and will not be retried anymore. Marking as failed.\nLast Error Message: ${errorMessage}`);
-            if (error.name === 'UserFacedError') {
-                await Dataset.pushData({
-                    url,
-                    answer: `ERROR: ${errorMessage}`,
-                });
-                return;
-            }
-            await Dataset.pushData({
-                '#error': true,
-                '#debug': createRequestDebugInfo(request),
+        async failedRequestHandler(context, error: Error) {
+            const { request } = context;
+
+            if (error.name === ERROR_TYPE.LIMIT_ERROR) return;
+
+            const state = await crawler.useState<CrawlerState>();
+            if (state.pagesOpened >= maxPagesPerCrawl) return;
+
+            state.pagesOpened++;
+            await saveErrorResult(context as PlaywrightCrawlingContext<UserData>, {
+                error: 'failed_to_load_page',
+                errorDescription: 'The page failed to load, reaching the maximum number of retries.',
+                debugInfo: createRequestDebugInfo(request),
             });
         },
     });

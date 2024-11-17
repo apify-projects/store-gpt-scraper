@@ -4,10 +4,12 @@ import { Cookie, RequestList, log } from 'crawlee';
 import { Page } from 'playwright';
 
 import { getModelConfigByName } from './models/models.js';
+import { LABELS } from './routes/router.js';
 import { Config } from './types/config.js';
 import { Input, PAGE_FORMAT } from './types/input.js';
 import { ModelConfig } from './types/model.js';
 import { OpenAIModelSettings } from './types/models.js';
+import { CrawlRouteUserData } from './types/user-data.js';
 
 // eslint-disable-next-line new-cap
 const ajv = new Ajv.default();
@@ -44,6 +46,10 @@ export const parseConfiguration = async (input: Input): Promise<Config> => {
     const proxyConfiguration = await Actor.createProxyConfiguration(input.proxyConfiguration);
 
     const { requests } = await RequestList.open({ sources: startUrls });
+    requests.forEach((request) => {
+        request.userData = { depth: 0, startUrl: request.url } satisfies CrawlRouteUserData;
+        request.label = LABELS.CRAWL;
+    });
 
     const totalMaxItems = Number(process.env.ACTOR_MAX_PAID_DATASET_ITEMS) || Number.POSITIVE_INFINITY;
     const maxPagesPerCrawl = Math.min(input.maxPagesPerCrawl || Number.POSITIVE_INFINITY, totalMaxItems);
