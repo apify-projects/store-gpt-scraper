@@ -1,5 +1,9 @@
 This changelog tracks updates to both GTP Scraper and Extended GPT Scraper actors.
 
+# 2024-12-30
+*Fixes*
+- Fixed extraction of multiple URLs with disabled `saveSnapshots` option.
+
 # 2024-11-17
 *Features*
 - Improved GPT call handling, which should parallelize the calls together with the crawling better.
