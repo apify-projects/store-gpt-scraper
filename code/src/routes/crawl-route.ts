@@ -119,10 +119,9 @@ export const crawlRoute = async (context: PlaywrightCrawlingContext<CrawlRouteUs
     const contentMaxTokens = model.modelConfig.maxTokens * 0.9 - instructionTokenLength; // 10% buffer for answer
     const pageContent = maybeShortsTextByTokenLength(originPageContent, contentMaxTokens);
 
-    let snapshotKey: string | undefined;
+    const snapshotKey = Date.now().toString();
     let sentContentKey: string | undefined;
     if (saveSnapshots) {
-        snapshotKey = Date.now().toString();
         sentContentKey = `${snapshotKey}-sentContent.${pageFormat === PAGE_FORMAT.MARKDOWN ? 'md' : 'html'}`;
         await utils.puppeteer.saveSnapshot(page, {
             key: snapshotKey,
