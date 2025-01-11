@@ -24,7 +24,9 @@ To get started with GPT Scraper, you need to set up the pages you want to scrape
 
 ![img](https://apify-uploads-prod.s3.amazonaws.com/11dd5210-7a03-4fd1-b157-3709d3296cf8_example_input_2.png)
 
-You can configure the scraper and GPT using Input configuration to set up a more complex workflow.
+You can configure the scraper and GPT using Input configuration to set up a more complex workflow. You can also follow this video for guidance:
+
+https://www.youtube.com/watch?v=io66Mh8HiCk
 
 ## Input configuration
 
